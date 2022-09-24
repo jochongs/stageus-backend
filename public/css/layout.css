@@ -1,0 +1,42 @@
+/* 변수================================================================= */
+:root{
+    --font_color : #222222;
+    --main_color : #2C69D8;
+    --background_color : white;
+    --background_color2 : #EEF0F3;
+    --red_btn_color : #EE695E;
+    --green_btn_color : #61C253;
+    --main_font : 'Nanum Gothic', sans-serif;
+    --main_border_radius : 6px;
+}
+
+/* 태그================================================================= */
+body{
+    font-family: var(--main_font);
+    color: var(--font_color);
+}
+h1{
+    margin: 0%;
+}
+input,button{
+    border: none;
+    background: none;
+    border-radius: var(--main_border_radius);
+}
+input:focus{
+    outline: none;
+}
+button{
+    cursor: pointer;
+}
+
+/* 클래스================================================================= */
+.wrap{
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+.title{
+    font-size: 60px;
+    margin-top: 30px;
+}

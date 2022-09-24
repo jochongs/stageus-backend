@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="kr">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/public/css/layout.css">
+    <link rel="stylesheet" href="/public/css/signup.css">
+    <title>회원가입</title>
+</head>
+<body>
+    <div class="wrap">
+        <h1 class="title">회원가입</h1>
+        <div class="signup_container">
+            <div class="id_input_container input-container">
+                <p class="id_input_name input-name">아이디</p>
+                <input type="text" id="id_input" class="signup-input">
+                <!-- <div class="error-message">
+                    아이디가 이상합니다.
+                </div> -->
+            </div>
+            <div class="pw_input_container input-container">
+                <p class="pw_nput_name input-name">비밀번호</p>
+                <input type="pw" id="pw_input" class="signup-input">
+            </div>
+            <div class="pw_check_input_container input-container">
+                <p class="pw_check_name input-name">비밀번호 확인</p>
+                <input type="pw" id="pw_check_input" class="signup-input">
+            </div>
+            <div class="name_input_container input-container">
+                <p class="name_input_name input-name">이름</p>
+                <input type="text" id="name_input" class="signup-input">
+            </div>
+            <div class="nickname_input_container input-container">
+                <p class="nickname_input_name input-name">닉네임</p>
+                <input type="text" id="nickname_input" class="signup-input">
+            </div>
+            <button class="signup_btn" onclick="clickSignupBtnEvent()">회원가입</button>
+        </div>
+    </div>
+    <script src="/public/js/signup.js"></script>
+</body>
+</html>

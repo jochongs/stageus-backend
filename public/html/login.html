@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/public/css/layout.css">
+    <link rel="stylesheet" href="/public/css/login.css">
+    <title>로그인</title>
+</head>
+<body>
+    <div class="wrap">
+        <h1 class="title">로그인페이지</h1>
+        <button class="move_main_page_btn">메인페이지</button>
+        <div class="login_container">
+            <div class="login_input_title_container">
+                로그인
+            </div>
+            <div class="id_input_container">
+                <input type="text" id="id_input" class="login-input" placeholder="abc1234">
+            </div>
+            <div class="pw_input_container">
+                <input type="password" class="login-input" id="pw_input" placeholder="*******">
+            </div>
+            <div class="error_message_div">
+            </div>
+            <button class="login_btn" onclick="loginEvent()">로그인</button>
+            <div class="page_move_btn_container">
+                <button>회원가입</button>
+                <button>아이디 찾기</button>
+            </div>
+        </div>
+    
+    </div>
+    <script src="../js/login.js"></script>
+</body>
+</html>
