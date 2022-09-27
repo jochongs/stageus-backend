@@ -13,33 +13,38 @@ const clickSignupBtnEvent = async ()=>{
     })
 
 
-    const result = await fetch('/account',{
-        "method" : "POST",
-        "headers" : {
-            "Content-Type" : "application/json"
-        },
-        "body" : JSON.stringify({
-            "id" : idValue,
-            "pw" : pwValue,
-            "pwCheck" : pwCheckValue,
-            "name" : nameValue,
-            "nickname" : nicknameValue,
+    try{
+        const result = await fetch('/account',{
+            "method" : "POST",
+            "headers" : {
+                "Content-Type" : "application/json"
+            },
+            "body" : JSON.stringify({
+                "id" : idValue,
+                "pw" : pwValue,
+                "pwCheck" : pwCheckValue,
+                "name" : nameValue,
+                "nickname" : nicknameValue,
+            })
         })
-    })
-    const error = await result.json();
+        const error = await result.json();
+        
+        console.log(error);
+        if(error.db.state){ //데이터베이스 에러 발생시
+            location.href = "/error";
+        }else if(error.state){ //로그인 에러 발생시 
+            error.errorArray.map((data)=>{
+                const div = document.createElement('div');
+                div.classList.add('error-message');
+                div.innerText = data.message;
     
-    console.log(error);
-    if(error.db.state){ //데이터베이스 에러 발생시
-        location.href = "/error";
-    }else if(error.state){ //로그인 에러 발생시 
-        error.errorArray.map((data)=>{
-            const div = document.createElement('div');
-            div.classList.add('error-message');
-            div.innerText = data.message;
-
-            document.querySelector(`.${data.class}`).append(div);
-        })
-    }else{ //잘 성공하면
-        location.href = "/session/new";
+                document.querySelector(`.${data.class}`).append(div);
+            })
+        }else{ //잘 성공하면
+            location.href = "/session/new";
+        }
+    }
+    catch{
+        location.href = '/error';
     }
 }

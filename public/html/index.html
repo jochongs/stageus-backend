@@ -10,12 +10,10 @@
 <body>
     <div class="wrap">
         <h1 class="title">메인 페이지</h1>
-        <input type="button" value="로그인 페이지로 이동" onclick="loginPageEvent()">  
+        <input type="button" value="로그인 페이지로 이동" onclick="moveLoginPage()">  
+        <button onclick="moveWritePostPage()">글 쓰기</button>
     </div>
-    <script>
-        const loginPageEvent = ()=>{
-            location.href = "/session/new";
-        }
-    </script>
+    <script src="/public/js/move_page.js"></script>
+    <script src="/public/js/index.js"></script>
 </body>
 </html>
