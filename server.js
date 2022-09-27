@@ -1,16 +1,34 @@
 //모듈 import 
 const express = require('express');
+const testRegExp = require('./function/reg_exp/reg_exp');
 const path = require('path');
 const app = express();
 const dotenv = require('dotenv');
+const mysql = require('mysql');
+const session = require('express-session');
 
 //설정
 dotenv.config();
 const PUBLIC_PATH = path.join(__dirname,'public');
 
+//db 설정
+const DB_SET = {
+    host : process.env.DB_HOST,
+    port : process.env.DB_PORT,
+    user : process.env.DB_USER,
+    password : process.env.DB_PASSWORD,
+    database : process.env.DB_DATABASE,
+}
+const DB = mysql.createConnection(DB_SET);
+
 //미들웨어
 app.use(express.json());
 app.use(express.static(path.join(__dirname)));
+app.use(session({
+    secret : "sadfklasdjfl", //대충 입력
+    resave : false,
+    saveUninitialized : true,
+}))
 
 //미들웨어 함수
 const authCheck = (req,res,next)=>{
@@ -18,42 +36,64 @@ const authCheck = (req,res,next)=>{
 }
 
 //api
+
+//메인페이지
 app.get('/',(req,res)=>{
     res.sendFile(path.join(PUBLIC_PATH,'html','index.html'));
 });
 
-app.get('/login',(req,res)=>{
+//로그인 페이지
+app.get('/session/new',(req,res)=>{
     res.sendFile(path.join(PUBLIC_PATH,'html','login.html'));
 });
 
-app.post('/account',(req,res)=>{
-    console.log('post /account 실행됨');
+//회원가입 페이지 
+app.get('/account/new',(req,res)=>{
+    res.sendFile(path.join(__dirname,'public','html','signup.html'));
+})
+
+//에러 페이지 
+app.get('/error',(req,res)=>{
+    res.sendFile(paht.join(PUBLIC_PATH,'html','error.html'));
+});
+
+//로그인 시도 Api
+app.post('/session',(req,res)=>{
     //FE로부터 받아오는 값
     const idValue = req.body.id;
     const pwValue = req.body.pw;
 
-    //예외처리
-
-    console.log(idValue,pwValue);
     //FE로 보내줄 값
-    const result = {
-        "success" : false
+    const loginResult = {
+        success : false,
+        message : "",
+        err : false,
     }
 
-    //API 로직
-    if(idValue === 'stageus' && pw ==='1234'){
-        result.success = true;
+    //예외처리
+    if(!testRegExp(idValue) || !testRegExp(pwValue,"pw")){ //아이디가 정규표현식에 맞지 않을경우 db에 굳이 접근하지 않음
+        loginResult.message = "아이디가 잘못되었습니다.1";
+        res.send(loginResult);
+    }else{
+        const sql = `SELECT * FROM account WHERE id='${idValue}'`;
+        DB.query(sql,(err,results,fields)=>{
+            if(err){
+                loginResult.err  = true;
+            }else{
+                if(pwValue.length !== 0 && pwValue !== undefined && pwValue === results[0]?.pw){
+                    loginResult.success = true;
+                    req.session.userId = idValue;
+                }else{
+                    loginResult.message = '아이디또는 비밀번호가 잘못되었습니다.';
+                }
+            }
+            res.send(loginResult);
+        });
     }
-
-    //값 반환
-    res.send(result);
 })
 
-app.get('/signup',(req,res)=>{
-    res.sendFile(path.join(__dirname,'public','html','signup.html'));
-})
-
-app.post('/signup',(req,res)=>{
+//회원정보 시도 api (회원가입 api)
+app.post('/account',(req,res)=>{
     //get input data
     const idValue = req.body.id;
     const pwValue = req.body.pw;
@@ -88,6 +128,9 @@ app.post('/signup',(req,res)=>{
     const error = {
         state : false,
         errorArray : [],
+        db : {
+            state : false,
+        }
     };
 
     //exception
@@ -131,7 +174,27 @@ app.post('/signup',(req,res)=>{
         error.state = true; 
         error.errorArray.push(tempObj);
     }
-    res.send(error);
+    console.log(error);
+    
+    if(!error.state){ //에러가 없을 경우 실행
+        const sql = `INSERT INTO account VALUES ('${idValue}','${pwValue}',NULL,'${nameValue}','${nicknameValue}')`;
+        DB.query(sql,(err,results,fields)=>{
+            if(err){
+                console.log(err);
+                err.db.state = true;
+                res.send(error);
+            }else{
+                res.send(error);
+            }
+        });
+    }else{
+        res.send(error);
+    }
+})
+
+app.delete('/session',(req,res)=>{
+    console.log(`${req.session.userId} 회원이 로그아웃을 시도 `);
+    req.session.userId = undefined;
 })
 
 //listen

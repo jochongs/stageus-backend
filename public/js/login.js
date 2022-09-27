@@ -6,7 +6,7 @@ const loginEvent = async ()=>{
     //에러 메시지 초기화
     errorDiv.innerHTML = "";
 
-    const result = await fetch('/account',{
+    const result = await fetch('/session',{
         "method" : "POST",
         "headers" : {
             "Content-Type" : "application/json"
@@ -17,6 +17,7 @@ const loginEvent = async ()=>{
         })
     })
     const response = await result.json();
+    console.log(response);
     if(response.success){
         location.href = "/";
     }else{
@@ -29,5 +30,6 @@ const moveMainPage = ()=>{
 }
 
 const moveSignupPage = ()=>{
-    location.href = '/signup';
+    location.href = '/account/new';
 }
+

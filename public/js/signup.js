@@ -13,7 +13,7 @@ const clickSignupBtnEvent = async ()=>{
     })
 
 
-    const result = await fetch('/signup',{
+    const result = await fetch('/account',{
         "method" : "POST",
         "headers" : {
             "Content-Type" : "application/json"
@@ -27,7 +27,11 @@ const clickSignupBtnEvent = async ()=>{
         })
     })
     const error = await result.json();
-    if(error.state === true){
+    
+    console.log(error);
+    if(error.db.state){ //데이터베이스 에러 발생시
+        location.href = "/error";
+    }else if(error.state){ //로그인 에러 발생시 
         error.errorArray.map((data)=>{
             const div = document.createElement('div');
             div.classList.add('error-message');
@@ -35,7 +39,7 @@ const clickSignupBtnEvent = async ()=>{
 
             document.querySelector(`.${data.class}`).append(div);
         })
-    }else{
-        location.href = "/login";
+    }else{ //잘 성공하면
+        location.href = "/session/new";
     }
 }
