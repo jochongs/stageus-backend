@@ -9,7 +9,7 @@ const clickSignupBtnEvent = async ()=>{
     //delete all error-message div  
     const errorMessageDivArray = document.querySelectorAll('.error-message');
     errorMessageDivArray.forEach((div)=>{
-        div.remove(); 
+        div.remove();
     })
 
 

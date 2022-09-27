@@ -11,7 +11,7 @@
 <body>
     <div class="wrap">
         <h1 class="title">로그인페이지</h1>
-        <button class="move_main_page_btn">메인페이지</button>
+        <button class="move_main_page_btn" onclick="moveMainPage()">메인페이지</button>
         <div class="login_container">
             <div class="login_input_title_container">
                 로그인
@@ -26,12 +26,12 @@
             </div>
             <button class="login_btn" onclick="loginEvent()">로그인</button>
             <div class="page_move_btn_container">
-                <button>회원가입</button>
+                <button onclick="moveSignupPage()">회원가입</button>
                 <button>아이디 찾기</button>
             </div>
         </div>
     
     </div>
-    <script src="../js/login.js"></script>
+    <script src="/public/js/login.js"></script>
 </body>
 </html>

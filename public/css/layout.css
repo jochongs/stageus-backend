@@ -22,6 +22,7 @@ input,button{
     border: none;
     background: none;
     border-radius: var(--main_border_radius);
+    border: 2px solid #222222;
 }
 input:focus{
     outline: none;
