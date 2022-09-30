@@ -1,18 +1,25 @@
-//모듈 import 
+//모듈 import ==================================================================================================================================================
 const express = require('express');
 const testRegExp = require('./function/reg_exp/reg_exp');
 const path = require('path');
-const app = express();
 const dotenv = require('dotenv');
 const mysql = require('mysql');
 const session = require('express-session');
+const app = express();
+
+const sessionApi = require('./router/session');
+const pagesApi = require('./router/pages');
+const accountApi = require('./router/account');
 
 
-//설정
+
+//설정 =========================================================================================================================================================
 dotenv.config();
 const PUBLIC_PATH = path.join(__dirname,'public');
 
-//db 설정
+
+
+//DB 설정 =========================================================================================================================================================
 const DB_SET = {
     host : process.env.DB_HOST,
     port : process.env.DB_PORT,
@@ -22,7 +29,9 @@ const DB_SET = {
 }
 const DB = mysql.createConnection(DB_SET);
 
-//미들웨어
+
+
+//전역 미들웨어 =====================================================================================================================================================
 app.use(express.json());
 app.use(express.static(path.join(__dirname)));
 app.use(session({
@@ -30,8 +39,14 @@ app.use(session({
     resave : false,
     saveUninitialized : true,
 }))
+app.use("/",pagesApi); 
+app.use('/account',accountApi);
+app.use('/session',sessionApi);
 
-//미들웨어 함수
+
+
+//미들웨어 함수 ========================================================================================================================================================
+//get요청 로그인 상태 확인 -> 로그인페이지로 이동
 const authCheck = (req,res,next)=>{
     if(req.session.userId !== undefined){
         next();
@@ -39,7 +54,7 @@ const authCheck = (req,res,next)=>{
         res.sendFile(path.join(PUBLIC_PATH,'html','login.html'));
     }
 }
-
+//post요청 로그인 상태 확인 {error:true}
 const postAuthCheck = (req,res,next)=>{
     if(req.session.userId === undefined){
         res.send({
@@ -50,40 +65,7 @@ const postAuthCheck = (req,res,next)=>{
     }
 }
 
-
-//메인페이지
-app.get('/',(req,res)=>{
-    res.sendFile(path.join(PUBLIC_PATH,'html','index.html'));
-});
-
-//로그인 페이지
-app.get('/session/new',(req,res)=>{
-    res.sendFile(path.join(PUBLIC_PATH,'html','login.html'));
-});
-
-//회원가입 페이지 
-app.get('/account/new',(req,res)=>{
-    res.sendFile(path.join(__dirname,'public','html','signup.html'));
-})
-
-//에러 페이지
-app.get('/error',(req,res)=>{
-    res.sendFile(path.join(PUBLIC_PATH,'html','error.html'));
-});
-
-//게시글 쓰기 페이지
-app.get('/post/new',authCheck,(req,res)=>{
-    res.sendFile(path.join(PUBLIC_PATH,'html','post_write.html'));
-})
-
-//게시글 디테일 페이지
-app.get('/post/detail/:postIdx',(req,res)=>{
-    res.sendFile(path.join(PUBLIC_PATH,'html','post_detail.html'));
-})
-
-
-
-
+//api ========================================================================================================================================================
 //게시글 쓰기 api
 app.post('/post',postAuthCheck,(req,res)=>{
     console.log('hi');
@@ -120,49 +102,12 @@ app.post('/post',postAuthCheck,(req,res)=>{
     }
 });
 
-//로그인 시도 api
-app.post('/session',(req,res)=>{
-    //FE로부터 받아오는 값
-    const idValue = req.body.id;
-    const pwValue = req.body.pw;
-
-    //FE로 보내줄 값
-    const error = {
-        state : false,
-        message : "",
-        db : {
-            state : false,
-        }
-    }
-
-    //예외처리
-    if(!testRegExp(idValue) || !testRegExp(pwValue,"pw")){ //아이디가 정규표현식에 맞지 않을경우 db에 굳이 접근하지 않음
-        error.message = "아이디가 잘못되었습니다.1";
-        res.send(error);
-    }else{
-        const sql = `SELECT * FROM account WHERE id=?`;
-        DB.query(sql,[idValue],(err,results,fields)=>{
-            if(err){
-                error.state  = true;
-            }else{
-                if(pwValue.length !== 0 && pwValue !== undefined && pwValue === results[0]?.pw){
-                    error.state = true;
-                    req.session.userId = idValue;
-                }else{
-                    error.message = '아이디또는 비밀번호가 잘못되었습니다.';
-                }
-            }
-            res.send(error);
-        });
-    }
-})
-
 //모든 게시글 데이터를 가져오는 api
 app.get('/post',(req,res)=>{
     const sql = `SELECT nickname,post_author,post_title,post_contents,post_idx,post_date,post_title FROM post JOIN account ON id=post_author`;
     const result ={
         error : false,
-        data : [],
+        data : []
     }
     DB.query(sql,(err,results)=>{
         if(err){
@@ -186,7 +131,6 @@ app.get('/post/:postIdx',(req,res)=>{
             res.send(results);  
         }
     })
-
 })
 
 //댓글의 db데이터를 가져오는 api
@@ -201,116 +145,6 @@ app.get('/comment',(req,res)=>{
         }
     })
 });
-
-//회원정보 시도 api (회원가입 api)
-app.post('/account',(req,res)=>{
-    //get input data
-    const idValue = req.body.id;
-    const pwValue = req.body.pw;
-    const pwCheckValue = req.body.pwCheck;
-    const nameValue = req.body.name;
-    const nicknameValue = req.body.nickname;
-    
-    //temp data
-    const signupRegExp = {
-        id : /^[a-z]+[a-z0-9]{5,13}$/g, //영문자로 시작하는 영문자 또는 숫자 6~12자
-        pw : /^(?=.*\d)(?=.*[a-zA-Z])[0-9a-zA-Z]{8,12}$/, //8~12자 영문, 숫자 조합
-        name : /^(?=.*[a-z0-9가-힣])[a-z0-9가-힣]{2,6}$/, //한글 또는 숫자 2~6글자
-        nickname : /^(?=.*[a-z0-9가-힣])[a-z0-9가-힣]{2,12}$/ //한글 또는 숫자 2~12글자
-    }
-    const errorMessage = {
-        id : {
-            regError : "아이디는 영문자로 시작하는 영문자 또는 숫자 6~12자이어야 합니다."
-        },
-        pw : {
-            regError : "비밀번호는 8~12자의 영문과 숫자의 조합이여야 합니다. ",
-        },
-        pwCheck : {
-            difPwError : "비밀번호와 다릅니다.",
-        },
-        name : {
-            regError : "이름은 2~6글자의 한글 또는 영문자이어야 합니다.",
-        },
-        nickname : {
-            regError : "닉네임은 2~12글자의 한글 또는 영문자이어야 합니다.",
-        }
-    }
-    const error = {
-        state : false,
-        errorArray : [],
-        db : {
-            state : false,
-        }
-    };
-
-    //exception
-    if(!signupRegExp.id.test(idValue)){ //id RegExp error 
-        const tempObj = {
-            class : "id_input_container",
-            message : errorMessage.id.regError,
-        }
-        error.state = true; 
-        error.errorArray.push(tempObj);
-    }
-    if(!signupRegExp.pw.test(pwValue)){ //pw RegExp error
-        const tempObj = {
-            class : "pw_input_container",
-            message : errorMessage.pw.regError,
-        }
-        error.state = true; 
-        error.errorArray.push(tempObj);
-    }
-    if(pwCheckValue !== pwValue){ //if pwCheckValue is different from pw
-        const tempObj = {
-            class : "pw_check_input_container",
-            message : errorMessage.pwCheck.difPwError,
-        }
-        error.state = true;
-        error.errorArray.push(tempObj);
-    }
-    if(!signupRegExp.name.test(nameValue)){ //name RegExp error
-        const tempObj = {
-            class : "name_input_container",
-            message : errorMessage.name.regError,
-        }
-        error.state = true; 
-        error.errorArray.push(tempObj);
-    }
-    if(!signupRegExp.nickname.test(nicknameValue)){ //nickname RegExp error
-        const tempObj = {
-            class : "nickname_input_container",
-            message : errorMessage.nickname.regError,
-        }
-        error.state = true; 
-        error.errorArray.push(tempObj);
-    }
-    
-    if(!error.state){ //에러가 없을 경우 실행
-        const sql = `INSERT INTO account VALUES (?,?,?,?,?)`;
-
-        const checkIdSql = `SELECT * FROM account WEHRE id='${idValue}'`; //이걸 쓸까 말까 고민 
-
-        DB.query(sql,[idValue,pwValue,null,nameValue,nicknameValue],(err,results,fields)=>{
-            if(err){
-
-                //믿어도 되는가 ? 안되면 db 아이디를 뽑아서 있는 지 확인후 insert query 실행
-                if(err.code === 'ER_DUP_ENTRY'){
-                    const tempObj = {
-                        class : "id_input_container",
-                        message : "이미 있는 아이디입니다."
-                    }
-                    error.errorArray.push(tempObj);
-                    error.state = true;
-                }else{
-                    error.db.state = true;
-                }
-            }
-            res.send(error);
-        });
-    }else{
-        res.send(error);
-    }
-})
 
 //comment에 데이터 삽입 api
 app.post('/comment',postAuthCheck,(req,res)=>{
@@ -423,7 +257,7 @@ app.put('/comment/:commentIdx',postAuthCheck,(req,res)=>{
 
 //post 수정 api
 app.put('/post/:postIdx',postAuthCheck,(req,res)=>{
-    const postIdx = req.params.postIdx; 
+    const postIdx = req.params.postIdx;
     const titleValue = req.body.title;
     const contentsValue = req.body.contents;
     const userId = req.session.userId;
@@ -456,21 +290,7 @@ app.put('/post/:postIdx',postAuthCheck,(req,res)=>{
     }
 })
 
-//로그아웃 api
-app.delete('/session',(req,res)=>{
-    try{
-        console.log(`${req.session.userId} 회원이 로그아웃을 시도 `);
-        req.session.userId = undefined;
-        res.send({error:false});
-    }catch{
-        res.send({error : true});
-    }
-})
-
-
-
-
-
+//404예외처리
 app.get('*',(req,res)=>{
     res.sendFile(path.join(PUBLIC_PATH,'html','error404.html'));
 })
@@ -479,3 +299,6 @@ app.get('*',(req,res)=>{
 app.listen(process.env.PORT,()=>{
     console.log(`web server on  PORT : ${process.env.PORT}`); //https://nodejs.org/api/process.html#process_process_env
 });
+
+
+//cohesion이 함수형 프로그래밍의 트렌드 -> 객체는 객체지향 설계를 하면서 유기적으로 연결되면서 설계를 함. 함수안에서 다 해결되도록 함수형으로 코딩하는 것을 말함
