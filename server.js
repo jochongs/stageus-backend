@@ -467,6 +467,14 @@ app.delete('/session',(req,res)=>{
     }
 })
 
+
+
+
+
+app.get('*',(req,res)=>{
+    res.sendFile(path.join(PUBLIC_PATH,'html','error404.html'));
+})
+
 //listen
 app.listen(process.env.PORT,()=>{
     console.log(`web server on  PORT : ${process.env.PORT}`); //https://nodejs.org/api/process.html#process_process_env
