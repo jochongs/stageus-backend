@@ -11,9 +11,22 @@
     <div class="wrap">
         <h1 class="title">메인 페이지</h1>
         <input type="button" value="로그인 페이지로 이동" onclick="moveLoginPage()">  
-        <button onclick="moveWritePostPage()">글 쓰기</button>
+        <!-- <button onclick="moveWritePostPage()">글 쓰기</button> -->
+        <button onclick="clickLogoutBtnEvent()">로그아웃</button>
+        <div class="post_write_container">
+            <input type="text" id="title" placeholder="제목을 입력하세요" class="post_title_input">
+            <textarea name="" id="contents" cols="30" rows="10" class="post_contents_input" placeholder="글 내용을 입력하세요"></textarea>
+            <div class="input_bottom_area">
+                <div class="error_container">
+                </div>
+                <button class="post_submit_btn" onclick="clickWriteBtnEvent()">제출</button>
+            </div>
+        </div>
+        <div class="post_container">
+        </div>
     </div>
     <script src="/public/js/move_page.js"></script>
     <script src="/public/js/index.js"></script>
+    <script src="/public/js/post_write.js"></script>
 </body>
 </html>

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/public/css/layout.css">
+    <link rel="stylesheet" href="/public/css/post_detail.css">
+    <title>포스트 디테일</title>
+</head>
+<body>
+    <div class="wrap">
+        <button onclick="moveMainPage()">메인페이지로</button>
+        <div class="post_container">
+            <div class="button_container">
+                <button onclick="clickDeletePostBtnEvent()">삭제</button>
+                <button onclick="clickModifyPostBtnEvent()">수정</button>
+            </div>
+            <div class="title_container">
+                
+            </div>
+            <div class="author_container">
+                
+            </div>
+            <div class="contents_container">
+    
+            </div>
+        </div>
+        <div class="comment_container">
+            <div class="input_container">
+                <input type="text" placeholder="댓글을 입력하세요" id="comment">
+                <button onclick="clickCommentSubmitBtnEvent()">완료</button>
+            </div>
+        </div>
+    </div>
+    <script src="/public/js/post_detail.js"></script>
+    <script src="/public/js/move_page.js"></script>
+</body>
+</html>
