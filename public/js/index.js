@@ -1,16 +1,11 @@
 window.onload = async ()=>{
-    try{
-        const response = await fetch('/post/all');
-        const result = await response.json();
-        
-        if(result.error.DB){ //데이터베이스 에러 발생시
-            location.href = "/error";
-        }else{ //잘 성공하면
-            addPostItem(result.data);
-        }
-    }
-    catch{
-        //location.href = '/error';
+    const response = await fetch('/post/all');
+    const result = await response.json();
+
+    if(result.state){ //성공하면
+        addPostItem(result.data);
+    }else if(result.error.DB){ //데이터베이스 에러 발생시
+        location.href = "/error";
     }
 }
 
@@ -33,7 +28,7 @@ const addPostItem = (postItemArray=[])=>{
 
         const dateContainer = document.createElement('div');
         dateContainer.classList.add('post_item_date_container');
-        dateContainer.innerText = `${postDate.getFullYear()}년 ${postDate.getMonth()+1}월 ${postDate.getDate()}`;
+        dateContainer.innerText = `${postDate.getFullYear()}년 ${postDate.getMonth()+1}월 ${postDate.getDate()}일`;
 
         const postItemDiv = document.createElement('div');
         postItemDiv.classList.add('post_item');
@@ -42,7 +37,7 @@ const addPostItem = (postItemArray=[])=>{
         postItemDiv.append(authorContainer);
         postItemDiv.append(dateContainer);
         postItemDiv.addEventListener('click',()=>{
-            location.href = `/post/detail/${postIdx}`;
+            location.href = `/page/post/${postIdx}`;
         })
 
         document.querySelector('.post_container').append(postItemDiv);
@@ -51,22 +46,17 @@ const addPostItem = (postItemArray=[])=>{
 
 //로그아웃 버튼 클릭 이벤트
 const clickLogoutBtnEvent = async ()=>{
-    //이미 로그아웃 된 상태에서 눌렀을 때의 예외처리는 굳이 하지 않음
-    try{
-        const request = await fetch(`/session`,{
-            "method" : "DELETE",
-            "headers" : {
-                "Content-Type" : "application/json"
-            },
-        })
-        const result = await request.json();
-        if(result.error){
-            location.href = "/error";
-        }else{
-            alert('로그아웃 되었습니다.');
-            location.reload();
-        }
-    }catch{
-        location.href = '/error';
+    const request = await fetch(`/session`,{
+        "method" : "DELETE",
+        "headers" : {
+            "Content-Type" : "application/json"
+        },
+    })
+    const result = await request.json();
+
+    if(result.state){
+        alert('로그아웃 되었습니다.');
+    }else{
+        alert('이미 로그아웃 되어있습니다.');
     }
 }

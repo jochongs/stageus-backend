@@ -1,13 +1,13 @@
 window.onload = ()=>{
     const postIdx = location.pathname.split('/')[location.pathname.split('/').length-1];
     requestPostData(postIdx);
-    requestCommentData(postIdx);
+    //requestCommentData(postIdx);
 }
 
 const requestPostData = async (postIdx)=>{
-    const request = await fetch(`/post/${postIdx}`);
-    const data = (await request.json())[0];
-    console.log(data);
+    const response = await fetch(`/post/${postIdx}`);
+    const result = await response.json();
+    const data = result.data[0];
     
     const titleDiv = document.querySelector('.title_container');
     titleDiv.innerHTML = data.post_title;
@@ -20,52 +20,48 @@ const requestPostData = async (postIdx)=>{
 }
 
 const requestCommentData = async (postIdx)=>{
-    try{
-        const request = await fetch(`/comment?postIdx=${postIdx}`);
-        const commentDataArray = await request.json();
-        console.log(commentDataArray);
+    const request = await fetch(`/comment?postIdx=${postIdx}`);
+    const commentDataArray = await request.json();
+    console.log(commentDataArray);
 
-        commentDataArray.forEach((commentData,index)=>{
-            const author = commentData.nickname;
-            const date = new Date(commentData.comment_date);
-            const contents = commentData.comment_contents;
-            const commentIdx = commentData.comment_idx;
+    commentDataArray.forEach((commentData,index)=>{
+        const author = commentData.nickname;
+        const date = new Date(commentData.comment_date);
+        const contents = commentData.comment_contents;
+        const commentIdx = commentData.comment_idx;
 
-            const commentContentsDiv = document.createElement('div');
-            commentContentsDiv.classList.add('comment_contents');
-            commentContentsDiv.innerText = contents;
+        const commentContentsDiv = document.createElement('div');
+        commentContentsDiv.classList.add('comment_contents');
+        commentContentsDiv.innerText = contents;
 
-            const commentAuthorDiv = document.createElement('div');
-            commentAuthorDiv.classList.add('comment_author');
-            commentAuthorDiv.innerText = author;
+        const commentAuthorDiv = document.createElement('div');
+        commentAuthorDiv.classList.add('comment_author');
+        commentAuthorDiv.innerText = author;
 
-            const commentDateDiv = document.createElement('div');
-            commentDateDiv.classList.add('comment_date');
-            commentDateDiv.innerText = `${date.getFullYear()}년 ${date.getMonth()+1}월 ${date.getDate()}일`;
+        const commentDateDiv = document.createElement('div');
+        commentDateDiv.classList.add('comment_date');
+        commentDateDiv.innerText = `${date.getFullYear()}년 ${date.getMonth()+1}월 ${date.getDate()}일`;
 
-            const deleteBtn = document.createElement('button');
-            deleteBtn.innerHTML = '삭제';
-            deleteBtn.dataset.commentIdx = commentIdx;
-            deleteBtn.addEventListener('click',clickDeleteCommentBtnEvent);
+        const deleteBtn = document.createElement('button');
+        deleteBtn.innerHTML = '삭제';
+        deleteBtn.dataset.commentIdx = commentIdx;
+        deleteBtn.addEventListener('click',clickDeleteCommentBtnEvent);
 
-            const modifyBtn = document.createElement('button');
-            modifyBtn.innerHTML = "수정";
-            modifyBtn.dataset.commentIdx = commentIdx;
-            modifyBtn.addEventListener('click',clickModifyCommentBtnEvent);
+        const modifyBtn = document.createElement('button');
+        modifyBtn.innerHTML = "수정";
+        modifyBtn.dataset.commentIdx = commentIdx;
+        modifyBtn.addEventListener('click',clickModifyCommentBtnEvent);
 
-            const commentItem = document.createElement('div');
-            commentItem.classList.add('comment_item');
-            commentItem.append(commentContentsDiv);
-            commentItem.append(commentAuthorDiv);
-            commentItem.append(commentDateDiv);
-            commentItem.append(deleteBtn);
-            commentItem.append(modifyBtn);
+        const commentItem = document.createElement('div');
+        commentItem.classList.add('comment_item');
+        commentItem.append(commentContentsDiv);
+        commentItem.append(commentAuthorDiv);
+        commentItem.append(commentDateDiv);
+        commentItem.append(deleteBtn);
+        commentItem.append(modifyBtn);
 
-            document.querySelector('.comment_container').append(commentItem);
-        })
-    }catch{
-        location.href = "/error";
-    }
+        document.querySelector('.comment_container').append(commentItem);
+    })
 }
 
 const clickCommentSubmitBtnEvent = async ()=>{

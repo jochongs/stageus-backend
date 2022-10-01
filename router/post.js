@@ -34,7 +34,6 @@ router.post('/',postAuthCheck,(req,res)=>{
         });
     }
 
-    console.log(req.session.userId);
     if(result.state){ //Body Data들의 조건이 맞을 때
         const sql = `INSERT INTO backend.post (post_title,post_contents,post_author) VALUES ($1,$2,$3)`;
         const valueArray = [titleValue, contentsValue, req.session.userId];
@@ -58,21 +57,53 @@ router.post('/',postAuthCheck,(req,res)=>{
     }
 });
 
-//모든 게시글 데이터를 가져오는 api
-router.get('/',(req,res)=>{
-    const sql = `SELECT nickname,post_author,post_title,post_contents,post_idx,post_date,post_title FROM post JOIN account ON id=post_author`;
+//게시글 받아오기 api
+router.get('/:option',(req,res)=>{
+    //option값 가져오기
+    const option = req.params.option;
+
+    //FE로 보낼 값
     const result ={
-        error : false,
+        state : true,
+        error : {
+            DB : false,
+            auth : true,
+            errorMessage : ""
+        },
         data : []
+    }   
+
+    //sql 준비
+    let sql = "";
+    let params = [];
+    if(option === 'all'){
+        sql = `SELECT post_idx,post_title,post_contents,post_date,nickname FROM backend.post JOIN backend.account ON id=post_author`;
+    }else{
+        sql = `SELECT post_idx,post_title,post_contents,post_date,nickname FROM backend.post JOIN backend.account ON id=post_author WHERE post_idx=$1`;
+        params.push(option);
     }
-    // DB.query(sql,(err,results)=>{
-    //     if(err){
-    //         result.error = true;
-    //     }else{
-    //         result.data = results;
-    //     }
-    //     res.send(results);
-    // })
+
+    //DB연결
+    try{
+        const client = new Client(pgConfig);
+        client.connect((err)=>{
+            console.log(err);
+        })
+        client.query(sql,params,(err,data)=>{
+            if(err){
+                throw err;
+            }else{
+                delete result.error;
+                result.data = data.rows;
+            }
+            res.send(result);
+        })
+    }catch{
+        result.state = false;
+        result.error.DB = true;
+        result.errorMessage = "DB에러가 발생헀습니다.";
+        res.send(result);
+    }
 })
 
 //특정 게시글의 db데이터 가져오는 api
