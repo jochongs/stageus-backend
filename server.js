@@ -1,11 +1,12 @@
 //모듈 import ==================================================================================================================================================
 const express = require('express');
-const testRegExp = require('./function/reg_exp/reg_exp');
+const app = express();
 const path = require('path');
 const dotenv = require('dotenv');
 const mysql = require('mysql');
 const session = require('express-session');
-const app = express();
+const postAuthCheck = require('./module/post_auth_check');
+const pgConfig = require('./module/pg_config');
 
 const sessionApi = require('./router/session');
 const pagesApi = require('./router/pages');
@@ -29,8 +30,6 @@ const DB_SET = {
 }
 const DB = mysql.createConnection(DB_SET);
 
-
-
 //전역 미들웨어 =====================================================================================================================================================
 app.use(express.json());
 app.use(express.static(path.join(__dirname)));
@@ -39,31 +38,21 @@ app.use(session({
     resave : false,
     saveUninitialized : true,
 }))
-app.use("/",pagesApi); 
+app.use("/page",pagesApi); 
 app.use('/account',accountApi);
 app.use('/session',sessionApi);
 
+//페이지==========================================================================================================================================================
+//메인페이지
+app.get('/',(req,res)=>{
+    res.sendFile(path.join(PUBLIC_PATH,'html','index.html'));
+});
 
+//404예외처리
+app.get('*',(req,res)=>{
+    res.sendFile(path.join(PUBLIC_PATH,'html','error404.html'));
+})
 
-//미들웨어 함수 ========================================================================================================================================================
-//get요청 로그인 상태 확인 -> 로그인페이지로 이동
-const authCheck = (req,res,next)=>{
-    if(req.session.userId !== undefined){
-        next();
-    }else{
-        res.sendFile(path.join(PUBLIC_PATH,'html','login.html'));
-    }
-}
-//post요청 로그인 상태 확인 {error:true}
-const postAuthCheck = (req,res,next)=>{
-    if(req.session.userId === undefined){
-        res.send({
-            error : true
-        })
-    }else{
-        next();
-    }
-}
 
 //api ========================================================================================================================================================
 //게시글 쓰기 api
@@ -290,10 +279,7 @@ app.put('/post/:postIdx',postAuthCheck,(req,res)=>{
     }
 })
 
-//404예외처리
-app.get('*',(req,res)=>{
-    res.sendFile(path.join(PUBLIC_PATH,'html','error404.html'));
-})
+
 
 //listen
 app.listen(process.env.PORT,()=>{

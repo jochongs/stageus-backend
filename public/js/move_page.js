@@ -3,13 +3,13 @@ const moveMainPage = ()=>{
 }
 
 const moveLoginPage = ()=>{
-    location.href = "/session/new";
+    location.href = "/page/login";
 }
 
 const moveSignupPage = ()=>{
-    location.href = "/account/new";
+    location.href = "/page/signup";
 }
 
-const moveWritePostPage = ()=>{
-    location.href = "/post/new";
+const movePostDetailPage = (post_idx)=>{
+    location.href = `/page/post/${post_idx}`;
 }

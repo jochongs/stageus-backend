@@ -11,7 +11,7 @@ window.onload = async ()=>{
         }
     }
     catch{
-        location.href = '/error';
+        //location.href = '/error';
     }
 }
 

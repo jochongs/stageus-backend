@@ -6,7 +6,7 @@ const loginEvent = async ()=>{
     //에러 메시지 초기화
     errorDiv.innerHTML = "";
     try{
-        const result = await fetch('/account/login',{
+        const result = await fetch('/session',{
             "method" : "POST",
             "headers" : {
                 "Content-Type" : "application/json"
@@ -18,13 +18,8 @@ const loginEvent = async ()=>{
         })
         const response = await result.json();
         console.log(response);
-        if(response.state){
-            location.href = "/";
-        }else{
-            errorDiv.innerHTML = response.message;
-        }
     }
     catch{
-        location.href = "/error";
+        //location.href = "/error";
     }
 }
