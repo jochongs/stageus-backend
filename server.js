@@ -12,7 +12,7 @@ const sessionApi = require('./router/session');
 const pagesApi = require('./router/pages');
 const accountApi = require('./router/account');
 const postApi = require('./router/post');
-
+const commentApi = require('./router/comment');
 
 
 //설정 =========================================================================================================================================================
@@ -43,6 +43,7 @@ app.use("/page",pagesApi);
 app.use('/account',accountApi);
 app.use('/session',sessionApi);
 app.use('/post',postApi);
+app.use('/comment',commentApi);
 
 //페이지==========================================================================================================================================================
 //메인페이지
@@ -58,70 +59,6 @@ app.get('*',(req,res)=>{
 
 //api ========================================================================================================================================================
 
-//댓글의 db데이터를 가져오는 api
-app.get('/comment',(req,res)=>{
-    const postIdx = req.query.postIdx;
-    const sql = `SELECT * FROM comment JOIN account ON comment_author=id WHERE post_idx=?`;
-    DB.query(sql,[postIdx],(err,results)=>{
-        if(err){
-            res.send(err);
-        }else{
-            res.send(results);
-        }
-    })
-});
-
-//comment에 데이터 삽입 api
-app.post('/comment',postAuthCheck,(req,res)=>{
-    const author = req.session.userId;
-    const contents = req.body.contents;
-    const postIdx = req.query.postIdx;
-
-    if(contents.length === 0){
-        res.send({lengthError : true});
-    }else{
-        const sql = `INSERT INTO comment (comment_author,comment_contents,post_idx) VALUES (?,?,?)`
-        const params = [author,contents,postIdx];
-        DB.query(sql,params,(err,results)=>{
-            if(err){
-                console.log(err);
-            }else{
-                res.send({error : false})
-            }
-        })
-    }
-})
-
-//comment 삭제 api
-app.delete('/comment/:commentIdx',postAuthCheck,(req,res)=>{
-    const commentIdx = req.params.commentIdx;
-    const userId = req.session.userId;
-
-    const sql = `SELECT comment_author FROM comment WHERE comment_idx=?`;
-    const params = [commentIdx];
-    DB.query(sql,params,(err,results)=>{
-        if(err){
-            console.log(err)
-        }else{
-            const commentAuthor = results[0].comment_author;
-            
-            console.log(userId,commentAuthor);
-            if(commentAuthor === userId){
-                const sql2 = `DELETE FROM comment WHERE comment_idx = ?`;
-                const params2 = [commentIdx];
-                DB.query(sql2,params2,(err2)=>{
-                    if(err2){
-                        console.log(err2);
-                    }else{
-                        res.send({error:false});
-                    }
-                })
-            }else{
-                res.send({error : true});
-            }
-        }
-    })
-})
 
 //post삭제 api
 app.delete('/post/:postIdx',postAuthCheck,(req,res)=>{

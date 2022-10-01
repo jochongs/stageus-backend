@@ -1,7 +1,7 @@
 window.onload = ()=>{
     const postIdx = location.pathname.split('/')[location.pathname.split('/').length-1];
     requestPostData(postIdx);
-    //requestCommentData(postIdx);
+    requestCommentData(postIdx);
 }
 
 const requestPostData = async (postIdx)=>{
@@ -20,73 +20,82 @@ const requestPostData = async (postIdx)=>{
 }
 
 const requestCommentData = async (postIdx)=>{
-    const request = await fetch(`/comment?postIdx=${postIdx}`);
-    const commentDataArray = await request.json();
-    console.log(commentDataArray);
+    const response = await fetch(`/comment?post-idx=${postIdx}`);
+    const result = await response.json();
 
-    commentDataArray.forEach((commentData,index)=>{
-        const author = commentData.nickname;
-        const date = new Date(commentData.comment_date);
-        const contents = commentData.comment_contents;
-        const commentIdx = commentData.comment_idx;
+    if(result.state){
+        const commentDataArray = result.data;
 
-        const commentContentsDiv = document.createElement('div');
-        commentContentsDiv.classList.add('comment_contents');
-        commentContentsDiv.innerText = contents;
+        commentDataArray.forEach((commentData,index)=>{
+            const author = commentData.nickname;
+            const date = new Date(commentData.comment_date);
+            const contents = commentData.comment_contents;
+            const commentIdx = commentData.comment_idx;
 
-        const commentAuthorDiv = document.createElement('div');
-        commentAuthorDiv.classList.add('comment_author');
-        commentAuthorDiv.innerText = author;
+            const commentContentsDiv = document.createElement('div');
+            commentContentsDiv.classList.add('comment_contents');
+            commentContentsDiv.innerText = contents;
 
-        const commentDateDiv = document.createElement('div');
-        commentDateDiv.classList.add('comment_date');
-        commentDateDiv.innerText = `${date.getFullYear()}년 ${date.getMonth()+1}월 ${date.getDate()}일`;
+            const commentAuthorDiv = document.createElement('div');
+            commentAuthorDiv.classList.add('comment_author');
+            commentAuthorDiv.innerText = author;
 
-        const deleteBtn = document.createElement('button');
-        deleteBtn.innerHTML = '삭제';
-        deleteBtn.dataset.commentIdx = commentIdx;
-        deleteBtn.addEventListener('click',clickDeleteCommentBtnEvent);
+            const commentDateDiv = document.createElement('div');
+            commentDateDiv.classList.add('comment_date');
+            commentDateDiv.innerText = `${date.getFullYear()}년 ${date.getMonth()+1}월 ${date.getDate()}일`;
 
-        const modifyBtn = document.createElement('button');
-        modifyBtn.innerHTML = "수정";
-        modifyBtn.dataset.commentIdx = commentIdx;
-        modifyBtn.addEventListener('click',clickModifyCommentBtnEvent);
+            const deleteBtn = document.createElement('button');
+            deleteBtn.innerHTML = '삭제';
+            deleteBtn.dataset.commentIdx = commentIdx;
+            deleteBtn.addEventListener('click',clickDeleteCommentBtnEvent);
 
-        const commentItem = document.createElement('div');
-        commentItem.classList.add('comment_item');
-        commentItem.append(commentContentsDiv);
-        commentItem.append(commentAuthorDiv);
-        commentItem.append(commentDateDiv);
-        commentItem.append(deleteBtn);
-        commentItem.append(modifyBtn);
+            const modifyBtn = document.createElement('button');
+            modifyBtn.innerHTML = "수정";
+            modifyBtn.dataset.commentIdx = commentIdx;
+            modifyBtn.addEventListener('click',clickModifyCommentBtnEvent);
 
-        document.querySelector('.comment_container').append(commentItem);
-    })
+            const commentItem = document.createElement('div');
+            commentItem.classList.add('comment_item');
+            commentItem.append(commentContentsDiv);
+            commentItem.append(commentAuthorDiv);
+            commentItem.append(commentDateDiv);
+            commentItem.append(deleteBtn);
+            commentItem.append(modifyBtn);
+
+            document.querySelector('.comment_container').append(commentItem);
+        })
+    }else{
+        location.href = '/page/error';
+    }
 }
 
 const clickCommentSubmitBtnEvent = async ()=>{
     const postIdx = location.pathname.split('/')[location.pathname.split('/').length-1];
     const comment = document.getElementById('comment').value;
-    try{
-        const result = await fetch(`/comment?postIdx=${postIdx}`,{
-            "method" : "POST",
-            "headers" : {
-                "Content-Type" : "application/json"
-            },
-            "body" : JSON.stringify({
-                contents : comment,
-            })
+
+    const response = await fetch(`/comment?postIdx=${postIdx}`,{
+        "method" : "POST",
+        "headers" : {
+            "Content-Type" : "application/json"
+        },
+        "body" : JSON.stringify({
+            contents : comment,
         })
-        const auth = await result.json();
-        if(auth.error){
-            location.href = '/session/new';
-        }else if(auth.lengthError){
-            alert('댓글을 입력해야합니다.');
+    })
+    const result = await response.json();
+
+    console.log(result);
+
+    if(result.state){//성공 시
+        location.reload();
+    }else{
+        if(!result.error.auth){
+            location.href = '/page/login';
+        }else if(result.error.DB){
+            location.href = '/page/error';
         }else{
-            location.reload();
+            alert('댓글 달 내용을 입력해야합니다.');
         }
-    }catch{
-        location.href = "/error";
     }
 }
 

@@ -87,11 +87,13 @@ router.get('/:option',(req,res)=>{
     try{
         const client = new Client(pgConfig);
         client.connect((err)=>{
-            console.log(err);
+            if(err) console.log(err);
         })
         client.query(sql,params,(err,data)=>{
             if(err){
-                throw err;
+                result.state = false;
+                result.error.DB = true;
+                result.errorMessage = "DB에러가 발생헀습니다.";
             }else{
                 delete result.error;
                 result.data = data.rows;
@@ -104,20 +106,6 @@ router.get('/:option',(req,res)=>{
         result.errorMessage = "DB에러가 발생헀습니다.";
         res.send(result);
     }
-})
-
-//특정 게시글의 db데이터 가져오는 api
-router.get('/:postIdx',(req,res)=>{
-    const postIdx = req.params.postIdx;
-    const sql = `SELECT * FROM post JOIN account ON post_author=id WHERE post_idx=?`;
-    // DB.query(sql,[postIdx],(err,results)=>{
-    //     if(err){
-    //         console.log(err);
-    //         res.send(err);
-    //     }else{
-    //         res.send(results);  
-    //     }
-    // })
 })
 
 module.exports = router;
