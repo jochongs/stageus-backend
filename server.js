@@ -11,6 +11,7 @@ const pgConfig = require('./module/pg_config');
 const sessionApi = require('./router/session');
 const pagesApi = require('./router/pages');
 const accountApi = require('./router/account');
+const postApi = require('./router/post');
 
 
 
@@ -41,6 +42,7 @@ app.use(session({
 app.use("/page",pagesApi); 
 app.use('/account',accountApi);
 app.use('/session',sessionApi);
+app.use('/post',postApi);
 
 //페이지==========================================================================================================================================================
 //메인페이지
@@ -55,72 +57,6 @@ app.get('*',(req,res)=>{
 
 
 //api ========================================================================================================================================================
-//게시글 쓰기 api
-app.post('/post',postAuthCheck,(req,res)=>{
-    console.log('hi');
-    const {title : titleValue, contents : contentsValue} = req.body;
-    const error = {
-        state : false,
-        message : "",
-        db : {
-            state : false,
-        }
-    }
-    if(titleValue.length === 0 || titleValue.length > 32){
-        error.state = true;
-        error.message = "제목의 길이는 1~32자여야 합니다.";
-    }
-    if(contentsValue.length ===0){ //contents 길이 어디까지로 해야되는지 물어보기
-        error.state = true;
-        error.message = "글의 내용은 필수로 입력해야합니다.";
-    }
-
-    if(!error.state){
-        const sql = `INSERT INTO post (post_title,post_contents,post_author) VALUES (?,?,?)`;
-        console.log('요청한 회원의 아이디 : '+req.session.userId);
-        const valueArray = [titleValue,contentsValue, req.session.userId];
-        DB.query(sql,valueArray,(err,results,fields)=>{
-            if(err){
-                console.log(err);
-                error.db.state = true;
-            }
-            res.send(error);
-        })
-    }else{
-        res.send(error);
-    }
-});
-
-//모든 게시글 데이터를 가져오는 api
-app.get('/post',(req,res)=>{
-    const sql = `SELECT nickname,post_author,post_title,post_contents,post_idx,post_date,post_title FROM post JOIN account ON id=post_author`;
-    const result ={
-        error : false,
-        data : []
-    }
-    DB.query(sql,(err,results)=>{
-        if(err){
-            result.error = true;
-        }else{
-            result.data = results;
-        }
-        res.send(results);
-    })
-})
-
-//특정 게시글의 db데이터 가져오는 api
-app.get('/post/:postIdx',(req,res)=>{
-    const postIdx = req.params.postIdx;
-    const sql = `SELECT * FROM post JOIN account ON post_author=id WHERE post_idx=?`;
-    DB.query(sql,[postIdx],(err,results)=>{
-        if(err){
-            console.log(err);
-            res.send(err);
-        }else{
-            res.send(results);  
-        }
-    })
-})
 
 //댓글의 db데이터를 가져오는 api
 app.get('/comment',(req,res)=>{

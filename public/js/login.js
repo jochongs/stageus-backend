@@ -6,7 +6,7 @@ const loginEvent = async ()=>{
     //에러 메시지 초기화
     errorDiv.innerHTML = "";
     try{
-        const result = await fetch('/session',{
+        const response = await fetch('/session',{
             "method" : "POST",
             "headers" : {
                 "Content-Type" : "application/json"
@@ -16,10 +16,17 @@ const loginEvent = async ()=>{
                 "pw" : pwValue,
             })
         })
-        const response = await result.json();
-        console.log(response);
+        const result = await response.json();
+
+        if(result.state){ //로그인 성공시
+            location.href = '/'; 
+        }else if(result.error.DB){ //DB에러 발생시
+            throw result.error.errorMessage;
+        }else{
+            errorDiv.innerHTML = result.error.errorMessage;
+        }
     }
     catch{
-        //location.href = "/error";
+        location.href = "/error";
     }
 }

@@ -61,13 +61,15 @@ router.post('/',(req,res)=>{
                     errorMessage : "DB 에러가 발생했습니다."
                 }
             }else{
-                console.log(data.rows);
                 if(data.rows.length === 0){ //아이디 비밀번호가 잘못됨
                     result.error = {
                         DB : false,
                         auth : false,
                         errorMessage : "아이디 또는 비밀번호가 잘못되었습니다."
-                    }
+                    } 
+                }else{ //모두 성공
+                    result.state = true;
+                    req.session.userId = idValue;
                 }
             }
             res.send(result);

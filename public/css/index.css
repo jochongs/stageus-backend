@@ -53,9 +53,9 @@
 .error_container{
     color: red;
 }
-.error_container::before{
-    content:  "*";
-    color: red;
+.error_container p::before{
+    content : "*";
+    margin-left: 10px;
 }
 .input_bottom_area{
     display: flex;

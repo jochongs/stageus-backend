@@ -1,13 +1,12 @@
 window.onload = async ()=>{
     try{
-        const result = await fetch('/post');
-        const results = await result.json();
+        const response = await fetch('/post/all');
+        const result = await response.json();
         
-        if(results.error){ //데이터베이스 에러 발생시
+        if(result.error.DB){ //데이터베이스 에러 발생시
             location.href = "/error";
         }else{ //잘 성공하면
-            addPostItem(results);
-            console.log(results);
+            addPostItem(result.data);
         }
     }
     catch{
