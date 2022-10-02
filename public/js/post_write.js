@@ -1,8 +1,6 @@
 const clickWriteBtnEvent = async ()=>{
     const titleValue = document.getElementById('title').value;
     const contentsValue = document.getElementById('contents').value;
-    const errorMessageDiv = document.querySelector('.error_container');
-    errorMessageDiv.innerText = "";
 
     const response = await fetch('/post',{
         "method" : "POST",
@@ -27,12 +25,7 @@ const clickWriteBtnEvent = async ()=>{
         }else if(!result.error.auth){ //권한이 없을 시
             location.href = '/page/login';
         }else{ //입력 내용 예외상황 발생시
-            result.error.errorMessage.forEach((data)=>{
-                const p = document.createElement('p');
-                p.innerText = data.message;
-                
-                errorMessageDiv.append(p);
-            })
+            alert(result.error.errorMessage[0].message);
         }
     }
 }

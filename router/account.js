@@ -122,8 +122,6 @@ router.post('/', (req,res)=>{
     }
 })
 
-
-
 //시험용 안씀
 router.post('/login', async (req,res)=>{
     const client = new Client(pgConfig);

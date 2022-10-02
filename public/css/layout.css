@@ -33,15 +33,29 @@ input:focus{
 button{
     cursor: pointer;
 }
+textarea{
+    resize: none;
+    font-family: var(--main_font);
+}
+textarea:focus{
+    outline: none;
+}
 
-header,main,section{
+header,main{
     display: flex;
-    flex-direction: column;
     align-items: center;
+    flex-direction: column;
 }
 header>div,main>section>div{
     width: 100%;
     max-width: 1000px;
+}
+section{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    width: 100%;
 }
 
 /* 클래스================================================================= */

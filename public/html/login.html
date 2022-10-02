@@ -4,14 +4,29 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="initial-scale=1.0,user-scalable=no,maximum-scale=1,width=device-width" />
-    <link rel="stylesheet" href="/public/css/layout.css">
     <link rel="stylesheet" href="/public/css/login.css">
+    <link rel="stylesheet" href="/public/css/layout.css">
+    <link rel="stylesheet" href="/public/css/header.css">
     <title>로그인</title>
 </head>
 <body>
+    <header>
+        <div class="header_container">
+            <div class="page_name_container">
+                <h1 onclick="moveMainPage()">백엔드</h1>
+            </div>
+        </div>
+    </header>
+    <main>
+        <section class="login_section">
+            <div class="login_container">
+                <div class="page_name_container">
+                    로그인
+                </div>
+            </div>                
+        </section>
+    </main>
     <div class="wrap">
-        <h1 class="title">로그인페이지</h1>
-        <button class="move_main_page_btn" onclick="moveMainPage()">메인페이지</button>
         <div class="login_container">
             <div class="login_input_title_container">
                 로그인
