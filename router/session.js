@@ -1,7 +1,20 @@
 const router = require('express').Router();
 const pgConfig = require('../module/pg_config');
 const { Client } = require('pg');
- 
+
+
+//로그인된 사용자의 아이디
+router.get('/',(req,res)=>{
+    if(req.session.userId === undefined){
+        res.send({state : false});
+    }else{
+        res.send({
+            state : true,
+            id : req.session.userId
+        })
+    }
+})
+
 //로그인 시도 api
 router.post('/',(req,res)=>{
     //FE로부터 받아오는 값

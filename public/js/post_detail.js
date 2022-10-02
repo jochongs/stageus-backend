@@ -20,7 +20,7 @@ const requestPostData = async (postIdx)=>{
 }
 
 const requestCommentData = async (postIdx)=>{
-    const response = await fetch(`/comment?post-idx=${postIdx}`);
+    const response = await fetch(`/comment?postIdx=${postIdx}`);
     const result = await response.json();
 
     if(result.state){
@@ -84,13 +84,11 @@ const clickCommentSubmitBtnEvent = async ()=>{
     })
     const result = await response.json();
 
-    console.log(result);
-
     if(result.state){//성공 시
         location.reload();
     }else{
         if(!result.error.auth){
-            location.href = '/page/login';
+            alert(result.error.errorMessage);
         }else if(result.error.DB){
             location.href = '/page/error';
         }else{
@@ -101,59 +99,67 @@ const clickCommentSubmitBtnEvent = async ()=>{
 
 const clickDeleteCommentBtnEvent = async (e)=>{
     const commentIdx = e.target.dataset.commentIdx;
-    try{
-        const result = await fetch(`/comment/${commentIdx}`,{
-            "method" : "DELETE",
-            "headers" : {
-                "Content-Type" : "application/json"
-            }
-        })
-        const auth = await result.json();
-        if(auth.error){
-            alert('권한이 없습니다.');
-        }else{
-            location.reload();
+    console.log(commentIdx);
+
+    const response = await fetch(`/comment/${commentIdx}`,{
+        "method" : "DELETE",
+        "headers" : {
+            "Content-Type" : "application/json"
         }
-    }catch{
-        location.href = "/error";
+    })
+    const result = await response.json();
+
+    if(result.state){//성공 시
+        location.reload();
+    }else{
+        if(!result.error.auth){
+            alert(result.error.errorMessage);
+        }else if(result.error.DB){
+            location.href = '/page/error';
+        }
     }
 }
 
 const clickModifyCommentBtnEvent = (e)=>{
+    const commentItem = e.target.parentElement;
+    const commentContents = commentItem.querySelector('.comment_contents').innerText;
+
     const input = document.createElement('input');
     input.id = "comment_modify_input";
     input.classList.add('comment_modify_input');
+    input.value = commentContents;
 
     const submitBtn = document.createElement('button');
     submitBtn.innerText = "수정완료";
-    submitBtn.addEventListener('click', async (req,res)=>{
+    submitBtn.addEventListener('click', async ()=>{
         const commentIdx = e.target.dataset.commentIdx;
         const contents = input.value;
 
-        try{
-            const result = await  fetch(`/comment/${commentIdx}`,{
-                "method" : "PUT",
-                "headers" : {
-                    "Content-Type" : "application/json"
-                },
-                "body" : JSON.stringify({
-                    contents : contents,
-                })
+        const response = await  fetch(`/comment/${commentIdx}`,{
+            "method" : "PUT",
+            "headers" : {
+                "Content-Type" : "application/json"
+            },
+            "body" : JSON.stringify({
+                contents : contents,
             })
-            const auth = await result.json();
-            if(auth.error){
-                alert('권한이 없습니다.');
-            }else if(auth.lengthError){
-                alert('내용을 입력해야 합니다.');
+        })
+        const result = await response.json();   
+        
+        if(result.state){
+            location.reload();
+        }else{
+            if(result.error.DB){
+                location.href = "/page/error";
+            }else if(!result.error.auth){
+                location.href = '/page/login';
             }else{
-                location.reload();
+                alert(result.error.errorMessage[0].message);
             }
-        }catch{
-            location.href = '/error';
         }
     })
     
-    const commentItem = e.target.parentElement;
+    
     commentItem.innerHTML = "";
     commentItem.appendChild(input);
     commentItem.append(submitBtn);
@@ -201,7 +207,7 @@ const clickModifyPostBtnEvent = (e)=>{
         const titleValue = titleInput.value;
         const contentsValue = contentsInput.value;
         
-        const result = await fetch(`/post/${postIdx}`,{
+        const response = await fetch(`/post/${postIdx}`,{
             "method" : "PUT",
             "headers" : {
                 "Content-Type" : "application/json"
@@ -211,14 +217,18 @@ const clickModifyPostBtnEvent = (e)=>{
                 contents : contentsValue,
             })
         })
-        const auth = await result.json();
+        const result = await response.json();
 
-        if(auth.error){
-            alert('권한이 없습니다.');
-        }else if(auth.lengthError){
-            alert("내용을 입력하세요");
+        if(result.state){
+            location.reload();
         }else{
-            location.href = `/post/detail/${postIdx}`;
+            if(result.error.DB){
+                location.href = '/page/error';
+            }else if(!result.error.auth){
+                alert(result.error.errorMessage);
+            }else{
+
+            }
         }
     })
     
