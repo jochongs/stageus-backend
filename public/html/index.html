@@ -2,20 +2,38 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="initial-scale=1.0,user-scalable=no,maximum-scale=1,width=device-width" />
     <link rel="stylesheet" href="/public/css/layout.css">
     <link rel="stylesheet" href="/public/css/index.css">
-    <title>안녕</title>
+    <link rel="stylesheet" href="/public/css/header.css">
+    <title>백엔드 심화</title>
 </head>
 <body>
+    <header>
+        <div class="header_container">
+            <div class="page_name_container">
+                <h1>백엔드</h1>
+            </div>
+            <nav>
+                <button class="nav_login_btn hidden" onclick="moveLoginPage()">로그인</button>
+                <button class="nav_login_btn" onclick="clickLogoutBtnEvent()">로그아웃</button>
+                <button class="user_info_btn">joch2712 <img class="open_user_info_icon" src="/public/source/icon/bottom_triangle_icon.svg" alt=""></button>
+            </nav>
+        </div>
+    </header>
+    <main>
+        <section>
+            <div class="write_post_section">
+                <div class="title_input_container">
+                    <input type="text" id="title" placeholder="제목을 입력하세요.">
+                </div>
+            </div>
+        </section>
+    </main>
     <div class="wrap">
-        <h1 class="title">메인 페이지</h1>
-        <input type="button" value="로그인 페이지로 이동" onclick="moveLoginPage()">  
-        <!-- <button onclick="moveWritePostPage()">글 쓰기</button> -->
-        <button onclick="clickLogoutBtnEvent()">로그아웃</button>
         <div class="post_write_container">
             <input type="text" id="title" placeholder="제목을 입력하세요" class="post_title_input">
-            <textarea name="" id="contents" cols="30" rows="10" class="post_contents_input" placeholder="글 내용을 입력하세요"></textarea>
+            <textarea name="" id="contents" cols="30" rows="=10" class="post_contents_input" placeholder="글 내용을 입력하세요"></textarea>
             <div class="input_bottom_area">
                 <div class="error_container">
                 </div>

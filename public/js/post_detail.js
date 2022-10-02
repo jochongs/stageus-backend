@@ -99,7 +99,6 @@ const clickCommentSubmitBtnEvent = async ()=>{
 
 const clickDeleteCommentBtnEvent = async (e)=>{
     const commentIdx = e.target.dataset.commentIdx;
-    console.log(commentIdx);
 
     const response = await fetch(`/comment/${commentIdx}`,{
         "method" : "DELETE",
@@ -168,18 +167,25 @@ const clickModifyCommentBtnEvent = (e)=>{
 const clickDeletePostBtnEvent = async ()=>{
     const postIdx = location.pathname.split('/')[location.pathname.split('/').length-1];
 
-    const result = await  fetch(`/post/${postIdx}`,{
+    const response = await  fetch(`/post/${postIdx}`,{
         "method" : "DELETE",
         "headers" : {
             "Content-Type" : "application/json"
         },
     })
 
-    const auth = await result.json();
-    if(auth.error){
-        alert('권한이 없습니다.');
+    const result = await response.json();
+
+    console.log(result);
+
+    if(result.state){
+        location.href = '/';
     }else{
-        location.href = "/";
+        if(result.error.DB){
+            location.href = '/page/error';
+        }else if(!result.error.auth){
+            alert(result.error.errorMessage);
+        }
     }
 }
 
