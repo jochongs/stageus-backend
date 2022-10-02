@@ -20,7 +20,7 @@ router.get('/',(req,res)=>{
     }
 
     //sql문 준비
-    const sql = `SELECT comment_idx,post_idx,comment_contents,comment_date,nickname FROM backend.comment JOIN backend.account ON comment_author=id WHERE post_idx = $1`;
+    const sql = `SELECT comment_idx,post_idx,comment_contents,comment_date,nickname,comment_author FROM backend.comment JOIN backend.account ON comment_author=id WHERE post_idx = $1`;
 
     //DB 준비 
     try{
@@ -101,19 +101,6 @@ router.post('/',postAuthCheck,(req,res)=>{
             res.send(result);
         }
     }
-    // if(contents.length === 0){
-    //     res.send({lengthError : true});
-    // }else{
-    //     const sql = `INSERT INTO comment (comment_author,comment_contents,post_idx) VALUES (?,?,?)`
-    //     const params = [author,contents,postIdx];
-    //     DB.query(sql,params,(err,results)=>{
-    //         if(err){
-    //             console.log(err);
-    //         }else{
-    //             res.send({error : false})
-    //         }
-    //     })
-    // }
 })
 
 //comment 수정 api
@@ -122,8 +109,6 @@ router.put('/:commentIdx',postAuthCheck,(req,res)=>{
     const commentIdx = req.params.commentIdx;
     const userId = req.session.userId;
     const contents = req.body.contents;
-
-    console.log(userId,contents,commentIdx);
 
     //FE에 줄 데이터
     const result = {
@@ -162,7 +147,7 @@ router.put('/:commentIdx',postAuthCheck,(req,res)=>{
                 result.error.errorMessage = "DB에러가 발생했습니다.";
                 res.send(result);
             }else{
-                if(userId === data.rows[0].comment_author){
+                if(userId === data.rows[0].comment_author || req.session.authority === 'admin'){
                     //sql준비
                     const sql2 = `UPDATE backend.comment SET comment_contents=$1 WHERE comment_idx = $2`;
                     const params = [contents,commentIdx];
@@ -188,27 +173,6 @@ router.put('/:commentIdx',postAuthCheck,(req,res)=>{
             }
         })
     }
-
-    
-    
-
-    // DB.query(sql,params,(err,results)=>{
-    //     if(err){
-    //         console.log(err);
-    //     }else{
-    //         const commentAuthor = results[0].comment_author;
-    //         if(commentAuthor=== userId){
-    //             const sql2 = `UPDATE comment SET comment_contents=? WHERE comment_idx=?`;
-    //             const params2 = [contents,commentIdx];
-    //             DB.query(sql2,params2,(err)=>{
-    //                 if(err) console.log(err);
-    //                 res.send({error:false});
-    //             })
-    //         }else{
-    //             res.send({error:true});
-    //         }
-    //     }
-    // })
 })
 
 
@@ -246,7 +210,7 @@ router.delete('/:commentIdx',postAuthCheck,(req,res)=>{
                 result.error.errorMessage = "DB에러가 발생했습니다.";
                 res.send(result);
             }else{
-                if(userId === data.rows[0].comment_author){
+                if(userId === data.rows[0].comment_author || req.session.authority === 'admin'){
                     //sql 준비
                     const sql2 = 'DELETE FROM backend.comment WHERE comment_idx=$1';
                     
@@ -274,28 +238,6 @@ router.delete('/:commentIdx',postAuthCheck,(req,res)=>{
         result.error.errorMessage = "DB에러가 발생했습니다.";
         res.send(result);
     }
-    // DB.query(sql,params,(err,results)=>{
-    //     if(err){
-    //         console.log(err)
-    //     }else{
-    //         const commentAuthor = results[0].comment_author;
-            
-    //         console.log(userId,commentAuthor);
-    //         if(commentAuthor === userId){
-    //             const sql2 = `DELETE FROM comment WHERE comment_idx = ?`;
-    //             const params2 = [commentIdx];
-    //             DB.query(sql2,params2,(err2)=>{
-    //                 if(err2){
-    //                     console.log(err2);
-    //                 }else{
-    //                     res.send({error:false});
-    //                 }
-    //             })
-    //         }else{
-    //             res.send({error : true});
-    //         }
-    //     }
-    // })
 })
 
 module.exports = router;

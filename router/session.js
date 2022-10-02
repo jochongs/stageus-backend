@@ -8,10 +8,18 @@ router.get('/',(req,res)=>{
     if(req.session.userId === undefined){
         res.send({state : false});
     }else{
-        res.send({
-            state : true,
-            id : req.session.userId
-        })
+        if(req.session.authority === 'admin'){
+            res.send({
+                state : true,
+                id : req.session.userId,
+                authority : 'admin'
+            })
+        }else{
+            res.send({
+                state : true,
+                id : req.session.userId
+            })   
+        }
     }
 })
 
@@ -35,7 +43,7 @@ router.post('/',(req,res)=>{
         }
     })
 
-    const sql = `SELECT id FROM backend.account WHERE id=$1 AND pw=$2`;
+    const sql = `SELECT id,authority FROM backend.account WHERE id=$1 AND pw=$2`;
     try{
         client.query(sql,[idValue,pwValue],(err,data)=>{
             if(err){
@@ -54,6 +62,9 @@ router.post('/',(req,res)=>{
                 }else{ //모두 성공
                     result.state = true;
                     req.session.userId = idValue;
+                    if(data.rows[0].authority === 'admin'){
+                        req.session.authority = 'admin';
+                    }
                 }
             }
             res.send(result);
@@ -77,6 +88,7 @@ router.delete('/',(req,res)=>{
     if(req.session.userId !== undefined){ //로그인이 되어있는 경우
         req.session.userId = undefined;
         result.state = true;
+        result.authority = false;
     }else{
         result.state = false;
         result.error = {

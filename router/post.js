@@ -24,9 +24,9 @@ router.get('/:option',(req,res)=>{
     let sql = "";
     let params = [];
     if(option === 'all'){
-        sql = `SELECT post_idx,post_title,post_contents,post_date,nickname FROM backend.post JOIN backend.account ON id=post_author`;
+        sql = `SELECT post_idx,post_title,post_contents,post_date,post_author,nickname FROM backend.post JOIN backend.account ON id=post_author`;
     }else{
-        sql = `SELECT post_idx,post_title,post_contents,post_date,nickname FROM backend.post JOIN backend.account ON id=post_author WHERE post_idx=$1`;
+        sql = `SELECT post_idx,post_title,post_contents,post_date,post_author,nickname FROM backend.post JOIN backend.account ON id=post_author WHERE post_idx=$1`;
         params.push(option);
     }
 
@@ -164,7 +164,7 @@ router.put('/:postIdx',postAuthCheck,(req,res)=>{
                     res.send(result);
                 }else{
                     const postAuthor = data.rows[0].post_author;
-                    if(postAuthor === userId){
+                    if(postAuthor === userId || req.session.authority === 'admin'){
                         //sql준비
                         const sql2 = 'UPDATE backend.post SET post_title=$1,post_contents=$2 WHERE post_idx=$3';
                         const params = [titleValue,contentsValue,postIdx];
@@ -239,7 +239,7 @@ router.delete('/:postIdx',postAuthCheck,(req,res)=>{
             }else{
                 const postAuthor = data.rows[0].post_author;
                 console.log(postAuthor,userId);
-                if(postAuthor === userId){
+                if(postAuthor === userId || req.session.authority === 'admin'){
                     //sql준비
                     const sql2 = 'DELETE FROM backend.post WHERE post_idx=$1';
                     const params = [postIdx];
