@@ -40,7 +40,7 @@
 .contents_container{
     margin-top: 20px;
     width: calc(100% - 40px);
-    min-height: 600px;
+    min-height: 300px;
 }
 .post_delete_btn{
     color: rgb(143, 28, 18);
@@ -93,8 +93,10 @@
     margin-bottom: 100px;
     background-color: white;
     border-radius: 6px;
-    padding-bottom: 10px;
     box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.3);
+}
+.comment_container>div:last-child{
+    margin-bottom: 10px;
 }
 .input_container{
     display: flex;
@@ -109,6 +111,9 @@
     padding-left: 10px;
     margin-right: 10px;
     box-sizing: border-box;
+}
+.comment_submit_btn{
+    font-size: 0.7rem;
 }
 .input_container button{
     width: 10%;

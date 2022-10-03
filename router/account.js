@@ -3,8 +3,13 @@ const testRegExp = require('../module/reg_exp');
 const path = require('path');
 const { Client } = require('pg');
 const pgConfig = require('../module/pg_config');
+const postAuthCheck = require('../module/post_auth_check');
 
 //api ===============================================================================
+//회원정보 요청 api 
+router.get('/',postAuthCheck,(req,res)=>{
+
+})
 //회원정보 시도 api (회원가입 api)
 router.post('/', (req,res)=>{
     //get input data

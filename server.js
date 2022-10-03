@@ -4,6 +4,8 @@ const app = express();
 const path = require('path');
 const dotenv = require('dotenv');
 const session = require('express-session');
+const requestIp = require('request-ip');
+const geoip = require('geoip-lite');
 
 const sessionApi = require('./router/session');
 const pagesApi = require('./router/pages');
@@ -25,12 +27,18 @@ app.use(session({
     resave : false,
     saveUninitialized : true,
 }))
+app.use('/',(req,res,next)=>{
+    const ip = requestIp.getClientIp(req);
+    //console.log(geoip.lookup(ip));
+    next();
+})
 app.use("/page",pagesApi); 
 app.use('/account',accountApi);
 app.use('/session',sessionApi);
 app.use('/post',postApi);
 app.use('/comment',commentApi);
 app.use('/auth',authApi);
+
 
 //페이지==========================================================================================================================================================
 //메인페이지
@@ -45,7 +53,7 @@ app.get('*',(req,res)=>{
 
 
 //listen
-app.listen(process.env.PORT,()=>{
+app.listen(process.env.PORT,'0.0.0.0',()=>{
     console.log(`web server on  PORT : ${process.env.PORT}`); //https://nodejs.org/api/process.html#process_process_env
 });
 
