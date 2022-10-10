@@ -33,7 +33,7 @@
 }
 .login_submit_btn_container button{
     width: 100%;
-    font-size: 2rem;
+    font-size: 1.8rem;
     height: 40px;
     font-weight: bolder;
     border: 2px solid var(--main_color);

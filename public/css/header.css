@@ -24,6 +24,9 @@ header{
     font-weight: bolder;
     font-size: 1rem;
 }
+.nav_logout_btn{
+    font-size: 0.7rem;
+}
 nav{
     display: flex;
     align-items: center;
@@ -44,8 +47,14 @@ nav{
     nav{
         margin-right: 10px;
     }
+    .page_name_container{
+        margin-left: 10px;
+    }
 }
 @media (min-width:600px) and (max-width: 1000px) {
+    .page_name_container{
+        margin-left: 10px;
+    }
     nav{
         margin-right: 10px;
     }

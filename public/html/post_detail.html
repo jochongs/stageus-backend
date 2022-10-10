@@ -18,7 +18,7 @@
             <nav>
                 <button class="nav_login_btn" onclick="moveLoginPage()">로그인</button>
                 <button class="nav_logout_btn hidden" onclick="clickLogoutBtnEvent()">로그아웃</button>
-                <button class="user_info_btn hidden"> <img class="open_user_info_icon hidden" src="/public/source/icon/bottom_triangle_icon.svg" alt=""></button>
+                <button class="user_info_btn hidden" onclick="clickUserInfoBtnEvent()"> <img class="open_user_info_icon hidden" src="/public/source/icon/bottom_triangle_icon.svg" alt=""></button>
             </nav>
         </div>
     </header>
@@ -48,9 +48,9 @@
         </section>
         <section class="comment_section">
             <div class="comment_container">
-                <div class="input_container">
+                <div class="input_container hidden">
                     <input type="text" placeholder="댓글을 입력하세요" id="comment">
-                    <button onclick="clickCommentSubmitBtnEvent()">완료</button>
+                    <button class="comment_submit_btn" onclick="clickCommentSubmitBtnEvent()">완료</button>
                 </div>
                 <!-- <div class="comment_item">
                     <div class="comment_contents">asdf</div>

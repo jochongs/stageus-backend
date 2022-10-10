@@ -13,5 +13,20 @@ const clickLogoutBtnEvent = async ()=>{
         location.reload();
     }else{
         alert('이미 로그아웃 되어있습니다.');
+        location.reload();
+    }
+}
+
+//회원 정보보기 버튼 이벤트
+const clickUserInfoBtnEvent = async ()=>{
+    const response = await fetch('/session');
+    const result = await response.json();
+
+    console.log(result);
+    
+    if(result.state){
+        location.href = `/page/account/${result.id}`;
+    }else{
+        alert('접근권한이 없습니다.');
     }
 }

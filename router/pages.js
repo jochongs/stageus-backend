@@ -1,5 +1,7 @@
 const router = require('express').Router();
 const path = require('path');
+const getAdminAuthCheck = require('../module/get_admin_auth_check');
+const getAuthCheck =require('../module/get_auth_check');
 const PUBLIC_PATH = path.join(__dirname,'..','public');
 
 //로그인 페이지
@@ -22,6 +24,23 @@ router.get('/post/:postIdx',(req,res)=>{
     res.sendFile(path.join(PUBLIC_PATH,'html','post_detail.html'));
 })
 
+//모든 회원 정보 보기 페이지
+router.get('/account/all',getAdminAuthCheck,(req,res)=>{
+    res.sendFile(path.join(PUBLIC_PATH,'html','account_admin.html'));
+})
+
+//회원 정보 보기 페이지
+router.get('/account/:userId',getAuthCheck,(req,res)=>{
+    const loginUserId = req.session.userId;
+    const userAuthority = req.session.authority;
+    const requestUserId = req.params.userId;
+
+    if(loginUserId === requestUserId || userAuthority === 'admin'){
+        res.sendFile(path.join(PUBLIC_PATH,'html','account_detail.html'));
+    }else{
+        res.sendFile(path.join(PUBLIC_PATH,'html','index.html'));
+    }
+})       
 
 
 module.exports = router;

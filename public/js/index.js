@@ -88,7 +88,6 @@ const addPostItem = (postItemArray=[])=>{
         postItemDiv.addEventListener('click',()=>{
             location.href = `/page/post/${postIdx}`;
         })
-
         document.querySelector('.post_container').append(postItemDiv);
     })
 }
