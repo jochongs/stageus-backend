@@ -1,9 +1,12 @@
 const router = require('express').Router();
+const path = require('path');
 const { Client } = require('pg');
-const pgConfig = require('../module/pg_config');
-const postAuthCheck = require('../module/post_auth_check')
+const { Transform } = require('stream');
+const pgConfig = require('../config/pg_config');
+const loginAuth = require('../module/login_auth_check');
+const postImgUpload = require('../module/post_img_upload');
 
-
+//api ===========================================================================
 //게시글 받아오기 api
 router.get('/:option',(req,res)=>{
     //option값 가져오기
@@ -24,9 +27,26 @@ router.get('/:option',(req,res)=>{
     let sql = "";
     let params = [];
     if(option === 'all'){
-        sql = `SELECT post_idx,post_title,post_contents,post_date,post_author,nickname FROM backend.post JOIN backend.account ON id=post_author`;
+        sql = `SELECT post_idx,post_title,post_contents,post_date,post_author,nickname FROM backend.post JOIN backend.account ON id=post_author ORDER BY post_idx DESC`;
     }else{
-        sql = `SELECT post_idx,post_title,post_contents,post_date,post_author,nickname FROM backend.post JOIN backend.account ON id=post_author WHERE post_idx=$1`;
+        sql = `SELECT 
+                    post_title,
+                    post_contents,
+                    post_date,post_author,
+                    nickname,
+                    img_path 
+                FROM 
+                    backend.post 
+                JOIN 
+                    backend.account 
+                ON 
+                    id=post_author 
+                LEFT JOIN 
+                    backend.post_img_mapping 
+                ON 
+                    backend.post.post_idx=backend.post_img_mapping.post_idx  
+                WHERE 
+                    backend.post.post_idx=$1`;
         params.push(option);
     }
 
@@ -56,9 +76,10 @@ router.get('/:option',(req,res)=>{
 })
 
 //게시글 쓰기 api
-router.post('/',postAuthCheck,(req,res)=>{
+router.post('/',loginAuth, postImgUpload.array('postImg'), (req,res)=>{
     //FE로부터 값 받기
-    const {title : titleValue, contents : contentsValue} = req.body;
+    const {title : titleValue, contents : contentsValue, imgFileArray} = req.body;
+    console.log(req.body);
 
     //FE로 보내줄 값
     const result = {
@@ -86,23 +107,42 @@ router.post('/',postAuthCheck,(req,res)=>{
         });
     }
 
-    if(result.state){ //Body Data들의 조건이 맞을 때
-        const sql = `INSERT INTO backend.post (post_title,post_contents,post_author) VALUES ($1,$2,$3)`;
+    //예외사항 없으면
+    if(result.state){
+        const sql = `INSERT INTO backend.post (post_title,post_contents,post_author) VALUES ($1,$2,$3) RETURNING post_idx`;
         const valueArray = [titleValue, contentsValue, req.session.userId];
         const client = new Client(pgConfig);
         client.connect((err)=>{
             if(err) console.log(err);
         });
-        client.query(sql,valueArray,(err)=>{
+        client.query(sql,valueArray, async (err,data)=>{
             if(err){
                 console.log(err);
                 result.state = false;
                 result.error.DB = true;
                 result.error.errorMessage = "DB 연결에 실패했습니다.";
+                res.send(result);
             }else{
-                delete result.error;
+                const post_idx = data.rows[0].post_idx;
+                const sql2 = `INSERT INTO backend.post_img_mapping (post_idx,img_path) VALUES ($1,$2)`;
+                //multiple data query insert 
+                try{
+                    console.log(req.files);
+                    for(let i = 0; i < req.files.length; i++){
+                        console.log(post_idx,req.files[i].transforms[0].key);
+                        await client.query(sql2,[post_idx,req.files[i].transforms[0].key]);
+                        console.log('하나 들어갑니다.');
+                    }
+                    delete result.error;
+                    res.send(result);
+                }catch(err){
+                    console.log(err);
+                    result.state = false;
+                    result.error.DB = true;
+                    result.error.errorMessage = "DB 연결에 실패했습니다.";
+                    res.send(result);
+                }
             }
-            res.send(result);
         })
     }else{
         res.send(result);
@@ -110,7 +150,7 @@ router.post('/',postAuthCheck,(req,res)=>{
 });
 
 //post 수정 api
-router.put('/:postIdx',postAuthCheck,(req,res)=>{
+router.put('/:postIdx',loginAuth,(req,res)=>{
     //FE에서 받아온 데이터
     const postIdx = req.params.postIdx;
     const titleValue = req.body.title;
@@ -203,7 +243,7 @@ router.put('/:postIdx',postAuthCheck,(req,res)=>{
 })
 
 //post삭제 api
-router.delete('/:postIdx',postAuthCheck,(req,res)=>{
+router.delete('/:postIdx',loginAuth,(req,res)=>{
     //FE에서 받은 데이터
     const postIdx = req.params.postIdx;
     const userId = req.session.userId;

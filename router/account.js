@@ -2,8 +2,8 @@ const router = require('express').Router();
 const testRegExp = require('../module/reg_exp');
 const path = require('path');
 const { Client } = require('pg');
-const pgConfig = require('../module/pg_config');
-const postAuthCheck = require('../module/post_auth_check');
+const pgConfig = require('../config/pg_config');
+const loginAuthCheck = require('../module/login_auth_check');
 
 //api ===============================================================================
 //모든 계정 데이터를 가져오는 API
@@ -56,7 +56,7 @@ router.get('/all',(req,res)=>{
 })
 
 //회원정보 요청 api 
-router.get('/:userId',postAuthCheck,(req,res)=>{
+router.get('/:userId',loginAuthCheck,(req,res)=>{
     //FE로 부터 받을  값
     const userId = req.params.userId;
 
@@ -224,7 +224,7 @@ router.post('/', (req,res)=>{
     }
 })
 
-router.put('/:userId',postAuthCheck ,(req,res)=>{
+router.put('/:userId',loginAuthCheck ,(req,res)=>{
     //FE에서 받은 값
     const userId = req.params.userId;
     const nameValue = req.body.name;

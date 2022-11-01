@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const {Client} = require('pg');
-const pgConfig = require('../module/pg_config');
-const postAuthCheck = require('../module/post_auth_check');
+const pgConfig = require('../config/pg_config');
+const loginAuthCheck = require('../module/login_auth_check');
 
 
 //댓글의 db데이터를 가져오는 api
@@ -20,7 +20,7 @@ router.get('/',(req,res)=>{
     }
 
     //sql문 준비
-    const sql = `SELECT comment_idx,post_idx,comment_contents,comment_date,nickname,comment_author FROM backend.comment JOIN backend.account ON comment_author=id WHERE post_idx = $1`;
+    const sql = `SELECT comment_idx,post_idx,comment_contents,comment_date,nickname,comment_author FROM backend.comment JOIN backend.account ON comment_author=id WHERE post_idx = $1 ORDER BY comment_idx DESC`;
 
     //DB 준비 
     try{
@@ -51,7 +51,7 @@ router.get('/',(req,res)=>{
 });
 
 //comment에 데이터 삽입 api
-router.post('/',postAuthCheck,(req,res)=>{
+router.post('/',loginAuthCheck,(req,res)=>{
     //FE에서 받아온 값
     const author = req.session.userId;
     const postIdx = req.query.postIdx;
@@ -104,7 +104,7 @@ router.post('/',postAuthCheck,(req,res)=>{
 })
 
 //comment 수정 api
-router.put('/:commentIdx',postAuthCheck,(req,res)=>{
+router.put('/:commentIdx',loginAuthCheck,(req,res)=>{
     //FE에서 받아온 데이터
     const commentIdx = req.params.commentIdx;
     const userId = req.session.userId;
@@ -177,7 +177,7 @@ router.put('/:commentIdx',postAuthCheck,(req,res)=>{
 
 
 //comment 삭제 api
-router.delete('/:commentIdx',postAuthCheck,(req,res)=>{
+router.delete('/:commentIdx',loginAuthCheck,(req,res)=>{
     //FE로부터 받은 데이터
     const commentIdx = req.params.commentIdx;
     const userId = req.session.userId;

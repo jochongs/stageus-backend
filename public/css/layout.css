@@ -57,6 +57,13 @@ section{
 
     width: 100%;
 }
+label{
+    cursor: pointer;
+    user-select: none;
+}
+select:focus{
+    outline: none;
+}
 
 /* 클래스================================================================= */
 .wrap{

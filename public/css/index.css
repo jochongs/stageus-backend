@@ -9,6 +9,12 @@
     border-radius: 12px;
     box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.3);
 }
+/* .write_post_form{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+} */
 .title_input_container{
     width: calc(100% - 40px);
     margin-top: 20px;
@@ -34,6 +40,12 @@
     background-color: #eee;
     border-radius: 6px;
 }
+.post_img_input_container{  
+    width: calc(100% - 40px);
+}
+.post_img_input{
+    border: none;
+}   
 .submit_btn_container{
     width: 100%;
     display: flex;

@@ -1,8 +1,5 @@
-./node_moudles/
+.env
 
-./.env
+ssl/
 
-./ssl/
-
-./config/
-
+node_moudles/

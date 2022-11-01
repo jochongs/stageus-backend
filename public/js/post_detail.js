@@ -31,6 +31,14 @@ const requestPostData = async (postIdx)=>{
         const authorDiv = document.querySelector('.author_container');
         authorDiv.innerHTML = data.nickname;
 
+        result.data.map((row,index)=>{
+            if(row.img_path !== null){
+                const img = document.createElement('img');
+                img.setAttribute('src',`https://jochong.s3.ap-northeast-2.amazonaws.com/post/${row.img_path}`);
+                document.querySelector('.contents_container').append(img);
+            }
+        })
+
         if(result2?.id === postAuthor || result2.authority === 'admin'){
             document.querySelector('.post_detail_btn_container').classList.remove('hidden');
         }
