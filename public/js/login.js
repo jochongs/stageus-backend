@@ -18,7 +18,7 @@ const loginEvent = async ()=>{
     const result = await response.json();
 
     if(result.state){ //로그인 성공시
-        location.href = '/'; 
+        location.href = document.referrer;
     }else if(result.error.DB){ //DB에러 발생시
         location.href = '/page/error';
     }else{

@@ -1,13 +1,9 @@
-const AWS = require('aws-sdk');
 const multer = require('multer');
 const multerS3 = require('multer-s3-transform');
-const aws_config = require('../config/aws_config');
 const sharp = require('sharp');
+const s3 = require('../module/s3');
 
 //setting ==================================================================
-AWS.config.update(aws_config);
-
-const s3 = new AWS.S3();
 
 const postImgUpload = multer({
     storage: multerS3({
@@ -35,9 +31,12 @@ const postImgUpload = multer({
         if(req.body.title.length !==0 && req.body.title.length <= 32 && req.body.contents.length !== 0){
             cb(null, true);
         }else{
-            console.log('입력 input 조건이 안맞아서 저장 못햇네요~');
             cb(null, false);
         }
+    },
+    limits : {
+        fileSize: 1*1024*1024,
+        files : 3
     }
 })
 
