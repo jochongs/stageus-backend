@@ -9,7 +9,6 @@ const geoip = require('geoip-lite');
 const fs = require('fs');
 const https = require('https');
 const logging = require('./module/logging');
-const multipart = require('connect-multiparty');
 
 const sessionApi = require('./router/session');
 const pagesApi = require('./router/pages');
@@ -31,8 +30,8 @@ const options = {
 //전역 미들웨어 =====================================================================================================================================================
 app.use(express.json());
 app.use(express.static(path.join(__dirname)));
-//app.use(express.urlencoded({ extended: false }));
-//app.use(multipart());
+//app.use(express.urlencoded({ extended: false })); //얘도 파싱해주는 거긴함
+//app.use(multipart()); //formdata 파싱해주는 거
 app.use(session({ 
     secret : "sadfklasdjfl", //대충 입력
     resave : false,

@@ -71,13 +71,15 @@ router.get('/:option', async (req,res)=>{
         params.push(option);
     }
 
-    //DB연결
+    //connect DB
     const client = new Client(pgConfig);
     try{
         await client.connect();
+
+        //SELECT post data
         const data = await client.query(sql,params);
 
-        //res.send
+        //send result
         delete result.error;
         result.data = data.rows;
         res.send(result);
@@ -94,7 +96,7 @@ router.get('/:option', async (req,res)=>{
 
 //게시글 쓰기 api
 router.post('/',loginAuth, async (req, res, next)=>{
-    postImgUpload.array('postImg')(req, res, (err)=>{
+    postImgUpload.array('postImg')(req, res, (err)=>{ //await으로 어떻게 바꾸지
         if(err){ //에러 발생 시 
             res.send({
                 state : false,
@@ -110,7 +112,6 @@ router.post('/',loginAuth, async (req, res, next)=>{
             next();
         }
     })
-    
 }, async (req,res)=>{
     //FE로부터 값 받기
     const {title : titleValue, contents : contentsValue, imgFileArray} = req.body;
@@ -141,42 +142,56 @@ router.post('/',loginAuth, async (req, res, next)=>{
         });
     }
 
+    console.log(req.files);
+
     //예외사항 없으면
     if(result.state){        
-        //DB연결
         const client = new Client(pgConfig);
         try{
+            //DB연결
             client.connect();
             
-            //begin
+            //BEGIN
             await client.query('BEGIN');
 
-            //insert post query
+            //INSERT post data
             const sql = `INSERT INTO backend.post (post_title,post_contents,post_author) VALUES ($1,$2,$3) RETURNING post_idx`;
             const valueArray = [titleValue, contentsValue, req.session.userId];
             const data = await client.query(sql,valueArray);
 
-            //insert post img mapping query
+            //INSERT post_img_path data
             const postIdx = data.rows[0].post_idx;
             const sql2 = `INSERT INTO backend.post_img_mapping (post_idx,img_path) VALUES ($1,$2)`;
             for(let i = 0; i < req.files.length; i++){
-                console.log(postIdx,req.files[i].transforms[0].key);
                 await client.query(sql2,[postIdx,req.files[i].transforms[0].key]);
             }
 
-            //if all success, commit
+            //COMMIT
             await client.query('COMMIT');
 
-            //res.send
+            //send result
             delete result.error;
             res.send(result);
-        }catch(e){
+        }catch(err){
             console.log(err);
 
             //ROLLBACK
             await client.query('ROLLBACK');
+
+            //delete img on s3
+            for(let i = 0; i < req.files.length; i++){
+                const imgPath = req.files[i].transforms[0].key;
+                try{
+                    await s3.deleteObject({
+                        Bucket: 'jochong/post', 
+                        Key: imgPath
+                    }).promise();
+                }catch(err2){
+                    console.log(err2); //그럼 여기서는 어떻게해야하지??
+                }
+            }
             
-            //res.send
+            //send result
             result.state = false;
             result.error.DB = true;
             result.error.errorMessage = "DB 연결에 실패했습니다.";
@@ -187,7 +202,7 @@ router.post('/',loginAuth, async (req, res, next)=>{
     }
 });
 
-//post 수정 api
+//게시글 수정
 router.put('/:postIdx',loginAuth,async (req,res)=>{
     //FE에서 받아온 데이터
     const postIdx = req.params.postIdx;
@@ -222,58 +237,54 @@ router.put('/:postIdx',loginAuth,async (req,res)=>{
     }
 
     if(result.state){
+        //DB연결
+        const client = new Client(pgConfig);
         try{
-            //DB연결
-            const client = new Client(pgConfig);
             await client.connect();
 
-            //post_author,
+            //SELECT post_author query for login auth check
             const sql = `SELECT post_author FROM backend.post WHERE post_idx=$1`;
             const params = [postIdx];
+            const selectResult = await client.query(sql,params);
 
+            //auth check for PUT request for post 
+            if(selectResult.rows[0].post_author === userId || req.session.authority === 'admin'){
+                //BEGIN
+                await client.query('BEGIN');
+                
+                //sql준비
+                const sql2 = 'UPDATE backend.post SET post_title=$1,post_contents=$2 WHERE post_idx=$3';
+                const params = [titleValue,contentsValue,postIdx];
+                
+                //UPDATE
+                await client.query(sql2,params);
 
-            client.query(sql,params,(err,data)=>{
-                if(err){
-                    console.log(err);
-                    delete result.error.errorMessage;
-                    result.error.DB = true;
-                    result.state = false;
-                    result.error.errorMessage = "DB에러가 발생했습니다.";
-                    res.send(result);
-                }else{
-                    const postAuthor = data.rows[0].post_author;
-                    if(postAuthor === userId || req.session.authority === 'admin'){
-                        //sql준비
-                        const sql2 = 'UPDATE backend.post SET post_title=$1,post_contents=$2 WHERE post_idx=$3';
-                        const params = [titleValue,contentsValue,postIdx];
-                        
-                        //DB연결
-                        client.query(sql2,params,(err2)=>{
-                            if(err2){
-                                console.log(err2);
-                                delete result.error.errorMessage;
-                                result.error.DB = true;
-                                result.state = false;
-                                result.error.errorMessage = "DB에러가 발생했습니다.";
-                            }else{
-                                delete result.error;
-                            }
-                            res.send(result);
-                        })
-                    }else{
-                        result.state = false;
-                        result.error.DB = false;
-                        result.error.auth = false;
-                        result.error.errorMessage = "접근권한이 없습니다.";
-                        res.send(result);
-                    }
-                }
-            })
-        }catch{
+                //COMMIT 
+                await client.query('COMMIT');
+
+                //send result
+                delete result.error;
+                res.send(result);
+            }else{
+                //send result
+                result.state = false;
+                result.error.DB = false;
+                result.error.auth = false;
+                result.error.errorMessage = "접근권한이 없습니다.";
+                res.send(result);
+            }
+        }catch(err){
+            console.log(err);
+
+            //ROLLBACK
+            client.query('ROLLBACK');
+
+            //send result
             delete result.error.errorMessage;
             result.error.DB = true;
+            result.state = false;
             result.error.errorMessage = "DB에러가 발생했습니다.";
-            rse.send(result);
+            res.send(result);
         }
     }else{
         res.send(result);
