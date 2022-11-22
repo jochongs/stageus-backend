@@ -3,10 +3,12 @@ const express = require('express');
 const app = express();
 const path = require('path');
 const dotenv = require('dotenv');
-const session = require('express-session');
 const fs = require('fs');
 const https = require('https');
 const logging = require('./module/logging');
+const session = require('express-session');
+const RedisStore = require('connect-redis')(session);
+const { createClient } = require("redis")
 
 const sessionApi = require('./router/session');
 const pagesApi = require('./router/pages');
@@ -24,11 +26,14 @@ const options = {
     "cert" : fs.readFileSync('/etc/letsencrypt/live/backend.xn--289a320aihm.com/cert.pem'),
     "ca" : fs.readFileSync('/etc/letsencrypt/live/backend.xn--289a320aihm.com/fullchain.pem')
 }
+let redisClient = createClient({ legacyMode: true });
+redisClient.connect().catch(console.error);
 
 //전역 미들웨어 =====================================================================================================================================================
 app.use(express.json());
 app.use(express.static(path.join(__dirname)));
 app.use(session({ 
+    store: new RedisStore({ client: redisClient }),
     secret : "sadfklasdjfl", //대충 입력
     resave : false,
     saveUninitialized : true,
@@ -89,5 +94,6 @@ app.listen(process.env.PORT,'0.0.0.0',()=>{
 });
 
 https.createServer(options,app).listen(process.env.HTTPS_PORT,'0.0.0.0',()=>{
-    console.log(`web server on PORT : ${process.env.HTTPS_PORT}`)
+    console.log(`web server on PORT : ${process.env.HTTPS_PORT}`);
+
 })
