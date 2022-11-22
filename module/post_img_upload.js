@@ -40,4 +40,22 @@ const postImgUpload = multer({
     }
 })
 
-module.exports = postImgUpload;
+module.exports = async (req, res, next) => {
+    //s3저장
+    postImgUpload.array('postImg')(req, res, (err)=>{ 
+        if(err){ //에러 발생 시 
+            res.send({
+                state : false,
+                error : {
+                    DB : false,
+                    auth : true,
+                    errorMessage : [{
+                        message : "erorr : cannot save img on S3"
+                    }]
+                }
+            })
+        }else{ 
+            next();
+        }
+    })
+};

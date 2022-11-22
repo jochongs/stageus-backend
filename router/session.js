@@ -5,7 +5,7 @@ const logging = require('../module/logging');
 
 
 //로그인된 사용자의 아이디
-router.get('/',(req,res)=>{
+router.get('/',(req, res) => {
     if(req.session.userId === undefined){
         res.send({state : false});
     }else{

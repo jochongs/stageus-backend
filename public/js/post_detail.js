@@ -14,6 +14,10 @@ const requestPostData = async (postIdx)=>{
     const result2 = await response2.json();
 
     if(result.state){
+        if(result.data.length === 0){
+            location.href = '/page/error404';
+            return 0;
+        }
         const data = result.data[0];
 
         const postAuthor = data.post_author;

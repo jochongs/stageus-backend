@@ -6,9 +6,8 @@ const loginAuth = require('../module/login_auth_check');
 const postImgUpload = require('../module/post_img_upload');
 const s3 = require('../module/s3');
 
-//api ===========================================================================
 //게시글 받아오기 api
-router.get('/:option', async (req,res)=>{
+router.get('/:option', async (req, res) => {
     //option값 가져오기
     const option = req.params.option;
 
@@ -77,11 +76,11 @@ router.get('/:option', async (req,res)=>{
         await client.connect();
 
         //SELECT post data
-        const data = await client.query(sql,params);
-
+        const selectData = await client.query(sql,params);
+        
         //send result
         delete result.error;
-        result.data = data.rows;
+        result.data = selectData.rows;
         res.send(result);
     }catch(err){
         console.log(err);
@@ -95,24 +94,7 @@ router.get('/:option', async (req,res)=>{
 })
 
 //게시글 쓰기 api
-router.post('/',loginAuth, async (req, res, next)=>{
-    postImgUpload.array('postImg')(req, res, (err)=>{ //await으로 어떻게 바꾸지
-        if(err){ //에러 발생 시 
-            res.send({
-                state : false,
-                error : {
-                    DB : false,
-                    auth : true,
-                    errorMessage : [{
-                        message : "erorr : cannot save img on S3"
-                    }]
-                }
-            })
-        }else{ //저장 에러 없으면
-            next();
-        }
-    })
-}, async (req,res)=>{
+router.post('/', loginAuth, postImgUpload, async (req, res) => {
     //FE로부터 값 받기
     const {title : titleValue, contents : contentsValue, imgFileArray} = req.body;
 
@@ -126,7 +108,7 @@ router.post('/',loginAuth, async (req, res, next)=>{
         }
     }
 
-    //body data의 입력 길이 검사
+    //check data
     if(titleValue.length === 0 || titleValue.length > 32){
         result.state = false;   
         result.error.errorMessage.push({
@@ -134,7 +116,7 @@ router.post('/',loginAuth, async (req, res, next)=>{
             message : "제목의 길이는 1~32자여야 합니다."
         });
     }
-    if(contentsValue.length ===0){ //contents 길이 어디까지로 해야되는지 물어보기
+    if(contentsValue.length ===0){
         result.state = false;   
         result.error.errorMessage.push({
             class : 'contents',
@@ -142,9 +124,7 @@ router.post('/',loginAuth, async (req, res, next)=>{
         });
     }
 
-    console.log(req.files);
-
-    //예외사항 없으면
+    //no exception
     if(result.state){        
         const client = new Client(pgConfig);
         try{
@@ -252,11 +232,9 @@ router.put('/:postIdx',loginAuth,async (req,res)=>{
                 //BEGIN
                 await client.query('BEGIN');
                 
-                //sql준비
+                //UPDATE 
                 const sql2 = 'UPDATE backend.post SET post_title=$1,post_contents=$2 WHERE post_idx=$3';
                 const params = [titleValue,contentsValue,postIdx];
-                
-                //UPDATE
                 await client.query(sql2,params);
 
                 //COMMIT 
@@ -277,7 +255,7 @@ router.put('/:postIdx',loginAuth,async (req,res)=>{
             console.log(err);
 
             //ROLLBACK
-            client.query('ROLLBACK');
+            client.query('ROLLBACK'); //필요한가?
 
             //send result
             delete result.error.errorMessage;
@@ -325,14 +303,14 @@ router.delete('/:postIdx',loginAuth, async (req,res)=>{
 
         //check delete auth
         if(postAuthor === userId || req.session.authority === 'admin'){
-            //begin
+            //BEGIN
             await client.query('BEGIN');
             
-            //delete post data
+            //DELETE post 
             const deletePostSql = 'DELETE FROM backend.post WHERE post_idx=$1';
             await client.query(deletePostSql,[postIdx]);
 
-            //delete post_img_mapping data
+            //DELETE post_img_mapping data
             const deletePostImgMappingSql = 'DELETE FROM backend.post_img_mapping WHERE post_idx = $1';
             await client.query(deletePostImgMappingSql,[postIdx]);
             for(const imgPath of imgPathArray){
@@ -342,14 +320,14 @@ router.delete('/:postIdx',loginAuth, async (req,res)=>{
                 }).promise();
             }
 
-            //if all success, commit
+            //COMMIT
             await client.query('COMMIT');
 
-            //res.send
+            //send result ( success )
             delete result.error;
             res.send(result);
         }else{ 
-            //no auth
+            //send result ( no auth )
             result.state = false;
             result.error.DB = false;
             result.error.auth = false;
@@ -362,7 +340,7 @@ router.delete('/:postIdx',loginAuth, async (req,res)=>{
         //ROLLBACK
         await client.query('ROLLBACK');
 
-        //send reuslt
+        //send reuslt ( server error )
         result.state = false;
         delete result.error.errorMessage;
         result.error.DB = true;
