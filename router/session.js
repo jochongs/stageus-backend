@@ -2,7 +2,6 @@ const router = require('express').Router();
 const pgConfig = require('../config/pg_config');
 const { Client } = require('pg');
 const logging = require('../module/logging');
-const { createClient } = require('redis');
 
 //로그인된 사용자의 아이디
 router.get('/', (req, res) => {
@@ -25,7 +24,7 @@ router.get('/', (req, res) => {
 })
 
 //로그인 시도 api
-router.post('/', async (req,res)=>{
+router.post('/', async (req, res) => {
     //FE로부터 받아오는 값
     const idValue = req.body.id;
     const pwValue = req.body.pw;
@@ -73,6 +72,7 @@ router.post('/', async (req,res)=>{
             req.sessionStore.all((err, sessions) => {
                 let sessionSid = "";
                 //search all session
+                console.log(sessions);
                 sessions.forEach((session)=>{
                     if(session.userId === idValue){
                         sessionSid = session.id;
@@ -81,6 +81,7 @@ router.post('/', async (req,res)=>{
 
                 //duplication id
                 if(sessionSid.length !== 0){
+                    //promise로 변경
                     req.sessionStore.destroy(sessionSid, (err) => {
                         if(err){
                             console.log(err);
