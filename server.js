@@ -37,6 +37,9 @@ app.use(session({
     secret : "sadfklasdjfl", //대충 입력
     resave : false,
     saveUninitialized : true,
+    cookie : {
+        expires : new Date(Date.now() + 1000 * 60 * 60)
+    }
 }));
 app.use((req,res,next)=>{ //로깅 미들웨어
     const oldSend = res.send;

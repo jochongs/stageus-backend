@@ -56,7 +56,7 @@ router.get('/all',(req,res)=>{
 })
 
 //회원정보 요청 api 
-router.get('/:userId',loginAuthCheck,(req,res)=>{
+router.get('/:userId', loginAuthCheck, (req, res) => {
     //FE로 부터 받을  값
     const userId = req.params.userId;
 
@@ -107,8 +107,9 @@ router.get('/:userId',loginAuthCheck,(req,res)=>{
         res.send(result);
     }
 })
+
 //회원정보 시도 api (회원가입 api)
-router.post('/', (req,res)=>{
+router.post('/', (req, res) => {
     //get input data
     const idValue = req.body.id;
     const pwValue = req.body.pw;
@@ -224,7 +225,7 @@ router.post('/', (req,res)=>{
     }
 })
 
-router.put('/:userId',loginAuthCheck ,(req,res)=>{
+router.put('/:userId', loginAuthCheck ,(req,res)=>{
     //FE에서 받은 값
     const userId = req.params.userId;
     const nameValue = req.body.name;

@@ -1,25 +1,20 @@
 const router = require('express').Router();
 const pgConfig = require('../config/pg_config');
 const { Client } = require('pg');
-const logging = require('../module/logging');
+const redis = require('redis').createClient();
 
 //로그인된 사용자의 아이디
 router.get('/', (req, res) => {
     if(req.session.userId === undefined){
         res.send({state : false});
     }else{
-        if(req.session.authority === 'admin'){
-            res.send({
-                state : true,
-                id : req.session.userId,
-                authority : 'admin'
-            })
-        }else{
-            res.send({
-                state : true,
-                id : req.session.userId
-            })   
-        }
+        res.send({
+            state : true,
+            id : req.session.userId,
+            name : req.session.userName,
+            nickname : req.session.userNickname,
+            authority : req.session.authority
+        })
     }
 })
 
@@ -54,8 +49,8 @@ router.post('/', async (req, res) => {
         const client = new Client(pgConfig);
         await client.connect();
 
-        //SELECT user dat a
-        const sql = `SELECT id,authority FROM backend.account WHERE id=$1 AND pw=$2`;
+        //SELECT user data
+        const sql = `SELECT id, authority, name, nickname FROM backend.account WHERE id=$1 AND pw=$2`;
         const selectData = await client.query(sql, [idValue, pwValue]);
 
         //check id, pw
@@ -68,47 +63,58 @@ router.post('/', async (req, res) => {
             }
             res.send(result);
         }else{
-            //중복로그인시 기존 로그인 해제
-            req.sessionStore.all((err, sessions) => {
-                let sessionSid = "";
-                //search all session
-                console.log(sessions);
-                sessions.forEach((session)=>{
-                    if(session.userId === idValue){
-                        sessionSid = session.id;
+            //prepare data
+            const userId = selectData.rows[0].id;
+            const userName = selectData.rows[0].name;
+            const userNickname = selectData.rows[0].nickname;
+            const userAuthority = selectData.rows[0].authority;
+
+            //redis connect
+            await redis.connect();
+
+            //get sessionSid width userId
+            const sessionSid = await redis.get(userId);
+            
+            //check duplication login
+            if(sessionSid !== null){
+                req.sessionStore.destroy(sessionSid, async (err) => {
+                    if(err){
+                        console.log(err);
+                        throw err;
                     }
-                })
 
-                //duplication id
-                if(sessionSid.length !== 0){
-                    //promise로 변경
-                    req.sessionStore.destroy(sessionSid, (err) => {
-                        if(err){
-                            console.log(err);
-                            throw "error";
-                        }
-                        //assign user data to session
-                        req.session.userId = idValue;
-                        if(selectData.rows[0].authority === 'admin'){
-                            req.session.authority = 'admin';
-                        }
+                    //add new login session
+                    await redis.del(userId);
+                    await redis.set(userId, req.sessionID);
+                    await redis.expire(userId, 10);
+                    await redis.disconnect();
 
-                        //send result ( success )
-                        result.state = true;
-                        res.send(result);
-                    });
-                }else{
                     //assign user data to session
-                    req.session.userId = idValue;
-                    if(selectData.rows[0].authority === 'admin'){
-                        req.session.authority = 'admin';
-                    }
+                    req.session.userId = userId;
+                    req.session.userName = userName;
+                    req.session.userNickname = userNickname;
+                    req.session.authority =  userAuthority;
 
                     //send result ( success )
                     result.state = true;
                     res.send(result);
-                }
-            });
+                });
+            }else{
+                //add login session
+                await redis.set(userId, req.sessionID);
+                await redis.expire(userId, 60 * 60);
+                await redis.disconnect();
+
+                //assign user data to session
+                req.session.userId = userId;
+                req.session.userName = userName;
+                req.session.userNickname = userNickname;
+                req.session.authority =  userAuthority;
+
+                //send result ( success )
+                result.state = true;
+                res.send(result);
+            }
         }
     }catch(err){
         console.log(err);
@@ -120,12 +126,10 @@ router.post('/', async (req, res) => {
         }
         res.send(result);
     }
-    
-    
 })
 
 //로그아웃 api
-router.delete('/', (req, res) => {
+router.delete('/', async (req, res) => {
     //FE로 보낼 데이터
     const result = {
         state : false
@@ -133,10 +137,13 @@ router.delete('/', (req, res) => {
 
     //check login state
     if(req.session?.userId !== undefined){
-        // delete req.session.userId;
-        // delete req.session.authority;
         result.state = true;
         result.auth = false;
+
+        //delete login state on redis
+        await redis.connect();
+        await redis.del(req.session.userId);
+        await redis.disconnect();
     }else{
         result.state = false;
         result.error = {
@@ -145,7 +152,6 @@ router.delete('/', (req, res) => {
     }
     
     //send result
-
     res.send(result);
 
     //destroy session
